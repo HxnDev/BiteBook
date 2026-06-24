@@ -1,0 +1,132 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 38 44% 96%;
+    --foreground: 22 35% 10%;
+
+    --card: 38 50% 99%;
+    --card-foreground: 22 35% 10%;
+
+    --primary: 26 82% 46%;
+    --primary-foreground: 40 60% 98%;
+
+    --secondary: 34 30% 90%;
+    --secondary-foreground: 22 35% 14%;
+
+    --muted: 34 28% 90%;
+    --muted-foreground: 24 12% 38%;
+
+    --accent: 13 62% 48%;
+    --accent-foreground: 40 60% 98%;
+
+    --border: 30 24% 84%;
+    --input: 30 24% 84%;
+    --ring: 26 82% 46%;
+
+    --radius: 0.9rem;
+  }
+
+  .dark {
+    --background: 22 30% 5%;
+    --foreground: 37 42% 92%;
+
+    --card: 22 22% 8%;
+    --card-foreground: 37 42% 92%;
+
+    --primary: 34 85% 60%;
+    --primary-foreground: 22 40% 8%;
+
+    --secondary: 20 16% 15%;
+    --secondary-foreground: 37 42% 92%;
+
+    --muted: 24 14% 14%;
+    --muted-foreground: 34 16% 64%;
+
+    --accent: 14 65% 54%;
+    --accent-foreground: 40 60% 97%;
+
+    --border: 28 16% 16%;
+    --input: 28 16% 18%;
+    --ring: 34 85% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "ss01", "cv01";
+  }
+
+  ::selection {
+    background: hsl(var(--primary) / 0.28);
+    color: hsl(var(--foreground));
+  }
+
+  /* Lenis smooth scroll */
+  html.lenis,
+  html.lenis body {
+    height: auto;
+  }
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(
+      120deg,
+      hsl(var(--foreground)) 0%,
+      hsl(var(--primary)) 55%,
+      hsl(var(--accent)) 100%
+    );
+  }
+  .bg-grain {
+    background-image: radial-gradient(
+      hsl(var(--foreground) / 0.04) 1px,
+      transparent 1px
+    );
+    background-size: 3px 3px;
+  }
+  .glass {
+    background: hsl(var(--card) / 0.7);
+    backdrop-filter: blur(10px) saturate(130%);
+    -webkit-backdrop-filter: blur(10px) saturate(130%);
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
