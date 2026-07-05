@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "BiteBook",
+    "slug": "bitebook",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "bitebook",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#110C09",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.hxndev.bitebook"
+    },
+    "android": {
+      "package": "com.hxndev.bitebook",
+      "adaptiveIcon": {
+        "backgroundColor": "#110C09",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#110C09",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 220
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "BiteBook uses your photos to attach pictures to recipes.",
+          "cameraPermission": "BiteBook uses the camera to photograph your dishes."
+        }
+      ],
+      "expo-font",
+      "expo-image",
+      "expo-status-bar"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "db22da05-246b-4834-a6cc-fe650f993201"
+      }
+    }
+  }
+}
