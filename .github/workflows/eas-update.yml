@@ -1,0 +1,46 @@
+name: OTA update (EAS)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/mobile/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/eas-update.yml"
+
+jobs:
+  update:
+    name: Publish update to preview channel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Publish OTA update
+        working-directory: apps/mobile
+        env:
+          # Same publishable values as eas.json — baked into the JS bundle.
+          EXPO_PUBLIC_SUPABASE_URL: https://vgwmrzoffyqerbrrzbzw.supabase.co
+          EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_5ROb2ZTl8lvDeCeCVsN21A_VWUdr5qG
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          eas update --channel preview --non-interactive \
+            --message "${COMMIT_MESSAGE%%$'\n'*}"
