@@ -4,7 +4,7 @@
 
 A personal, shared family recipe book with photos, flexible ingredients and
 manual macros (per 100g). No login: anyone in the family with the link can
-read, add and edit. Web app at **recipes.hxndev.com**, plus an Android app
+read, add and edit. Web app at **bitebook.hxndev.com**, plus an Android app
 with full feature parity.
 
 ## Apps

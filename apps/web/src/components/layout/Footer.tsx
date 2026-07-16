@@ -26,7 +26,7 @@ export function Footer() {
       </div>
       <div className="container flex items-center justify-between border-t border-border/40 py-6 text-xs text-muted-foreground">
         <span>© {new Date().getFullYear()} BiteBook</span>
-        <span>recipes.hxndev.com</span>
+        <span>bitebook.hxndev.com</span>
       </div>
     </footer>
   );

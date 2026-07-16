@@ -2,7 +2,7 @@
   "name": "bitebook",
   "private": true,
   "version": "0.1.0",
-  "description": "BiteBook — the family recipe book. Lives at recipes.hxndev.com",
+  "description": "BiteBook — the family recipe book. Lives at bitebook.hxndev.com",
   "scripts": {
     "dev": "pnpm --filter @bitebook/web dev",
     "mobile": "pnpm --filter @bitebook/mobile start",

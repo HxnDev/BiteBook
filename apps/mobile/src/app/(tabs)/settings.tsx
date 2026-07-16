@@ -5,7 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Card, SectionTitle } from "@/components/ui";
 import { colors, font, radius } from "@/lib/theme";
 
-const WEB_URL = "https://recipes.hxndev.com";
+const WEB_URL = "https://bitebook.hxndev.com";
 
 export default function SettingsScreen() {
   return (
@@ -30,7 +30,7 @@ export default function SettingsScreen() {
         <Row
           icon={<Globe size={18} color={colors.primary} />}
           label="Open the website"
-          detail="recipes.hxndev.com"
+          detail="bitebook.hxndev.com"
           onPress={() => Linking.openURL(WEB_URL)}
           trailing={<ExternalLink size={16} color={colors.muted} />}
         />
