@@ -39,7 +39,13 @@ const SORTS: { value: Sort; label: string }[] = [
 
 export default function RecipesScreen() {
   const insets = useSafeAreaInsets();
-  const { data: recipes, isLoading, refetch, isRefetching } = useRecipes();
+  const {
+    data: recipes,
+    isLoading,
+    error,
+    refetch,
+    isRefetching,
+  } = useRecipes();
   const deleteRecipes = useDeleteRecipes();
 
   const [query, setQuery] = useState("");
@@ -193,6 +199,15 @@ export default function RecipesScreen() {
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} />
           ))}
+        </View>
+      ) : error ? (
+        <View style={{ paddingTop: 4 }}>
+          <EmptyState
+            icon={<CookingPot size={30} color={colors.destructive} />}
+            title="Couldn't load recipes"
+            text={error.message}
+          />
+          <Button label="Try again" onPress={() => refetch()} />
         </View>
       ) : (
         <FlatList

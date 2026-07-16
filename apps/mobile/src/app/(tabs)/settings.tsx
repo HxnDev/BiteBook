@@ -1,11 +1,48 @@
 import * as Linking from "expo-linking";
-import { BookOpen, ExternalLink, Globe, Info } from "lucide-react-native";
+import * as Updates from "expo-updates";
+import {
+  BookOpen,
+  ExternalLink,
+  Globe,
+  Info,
+  RefreshCw,
+} from "lucide-react-native";
 import type { ReactNode } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { Card, SectionTitle } from "@/components/ui";
 import { colors, font, radius } from "@/lib/theme";
 
 const WEB_URL = "https://bitebook.hxndev.com";
+
+const updateInfo = Updates.isEmbeddedLaunch
+  ? "Built-in bundle (no OTA update applied)"
+  : `Update ${Updates.updateId?.slice(0, 8) ?? "?"} · ${
+      Updates.createdAt?.toLocaleString() ?? ""
+    }`;
+
+async function checkForUpdate() {
+  try {
+    const result = await Updates.checkForUpdateAsync();
+    if (!result.isAvailable) {
+      Alert.alert("Up to date", "You're already on the latest version.");
+      return;
+    }
+    await Updates.fetchUpdateAsync();
+    Alert.alert("Update ready", "Restart now to apply it?", [
+      { text: "Later", style: "cancel" },
+      { text: "Restart", onPress: () => Updates.reloadAsync() },
+    ]);
+  } catch (err) {
+    Alert.alert("Update check failed", String(err));
+  }
+}
 
 export default function SettingsScreen() {
   return (
@@ -38,7 +75,14 @@ export default function SettingsScreen() {
         <Row
           icon={<Info size={18} color={colors.primary} />}
           label="Version"
-          detail="1.0.0"
+          detail={`1.0.0 · ${updateInfo}`}
+        />
+        <View style={styles.divider} />
+        <Row
+          icon={<RefreshCw size={18} color={colors.primary} />}
+          label="Check for updates"
+          detail="Fetch the latest version now"
+          onPress={checkForUpdate}
         />
       </Card>
     </ScrollView>
