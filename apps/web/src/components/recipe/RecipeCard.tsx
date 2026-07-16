@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Heart, Flame, Beef, Check } from "lucide-react";
+import { Flame, Beef, Check } from "lucide-react";
 import { RecipeImage } from "@/components/recipe/RecipeImage";
 import { Badge } from "@/components/ui/badge";
 import { fmt, per100g } from "@/lib/recipes/macros";
@@ -28,11 +28,6 @@ export function RecipeCard({
           <RecipeImage src={recipe.imageUrl} alt={recipe.title} seed={recipe.id} />
         </div>
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-        {recipe.isFavorite && !selectable && (
-          <div className="absolute right-3 top-3 grid size-8 place-items-center rounded-full bg-accent/90 text-accent-foreground">
-            <Heart className="size-4 fill-current" />
-          </div>
-        )}
         {selectable && (
           <div
             className={cn(

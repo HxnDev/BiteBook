@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { StyleSheet, Text, type StyleProp, type TextStyle } from "react-native";
-import { colors, font } from "@/lib/theme";
+import { font, type Palette } from "@/lib/theme";
+import { useThemedStyles } from "@/lib/theme-context";
 
 /** Fraunces serif section heading — the app's display voice. */
 export function SectionTitle({
@@ -10,6 +11,7 @@ export function SectionTitle({
   children: ReactNode;
   style?: StyleProp<TextStyle>;
 }) {
+  const styles = useThemedStyles(createStyles);
   return <Text style={[styles.sectionTitle, style]}>{children}</Text>;
 }
 
@@ -21,21 +23,23 @@ export function Eyebrow({
   children: ReactNode;
   style?: StyleProp<TextStyle>;
 }) {
+  const styles = useThemedStyles(createStyles);
   return <Text style={[styles.eyebrow, style]}>{children}</Text>;
 }
 
-const styles = StyleSheet.create({
-  sectionTitle: {
-    color: colors.text,
-    fontFamily: font.display,
-    fontSize: 22,
-    letterSpacing: 0.2,
-  },
-  eyebrow: {
-    color: colors.primary,
-    fontFamily: font.semibold,
-    fontSize: 11,
-    letterSpacing: 3,
-    textTransform: "uppercase",
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    sectionTitle: {
+      color: colors.text,
+      fontFamily: font.display,
+      fontSize: 22,
+      letterSpacing: 0.2,
+    },
+    eyebrow: {
+      color: colors.primary,
+      fontFamily: font.semibold,
+      fontSize: 11,
+      letterSpacing: 3,
+      textTransform: "uppercase",
+    },
+  });

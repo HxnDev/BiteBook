@@ -5,10 +5,8 @@ import {
   ArrowLeft,
   CookingPot,
   Copy,
-  Heart,
   Pencil,
   Trash2,
-  Utensils,
 } from "lucide-react-native";
 import type { ReactNode } from "react";
 import {
@@ -22,25 +20,27 @@ import {
 import Animated, { FadeInDown } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { IngredientList } from "@/components/recipe/ingredient-list";
+import { sizedImage } from "@/lib/image";
 import { MacroGrid } from "@/components/recipe/macro-grid";
 import { MethodList } from "@/components/recipe/method-list";
 import { Card, CategoryPill, Loading, SectionTitle } from "@/components/ui";
 import {
   useDeleteRecipes,
   useDuplicateRecipe,
-  usePatchRecipe,
   useRecipe,
 } from "@/hooks/use-recipes";
 import { per100g } from "@/lib/recipes/macros";
-import { colors, font, radius } from "@/lib/theme";
+import { font, radius, type Palette } from "@/lib/theme";
+import { useTheme, useThemedStyles } from "@/lib/theme-context";
 
 export default function RecipeDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors, scheme } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const { data: recipe, isLoading } = useRecipe(id);
 
-  const patch = usePatchRecipe();
   const duplicate = useDuplicateRecipe();
   const remove = useDeleteRecipes();
 
@@ -86,16 +86,7 @@ export default function RecipeDetailScreen() {
         style={[styles.backButton, { top: insets.top + 8 }]}
         hitSlop={8}
       >
-        <ArrowLeft size={20} color={colors.text} />
-      </Pressable>
-      <Pressable
-        onPress={() =>
-          router.push({ pathname: "/edit/[id]", params: { id: recipe.id } })
-        }
-        style={[styles.editButton, { top: insets.top + 8 }]}
-        hitSlop={8}
-      >
-        <Pencil size={18} color={colors.text} />
+        <ArrowLeft size={20} color="#F3EDE2" />
       </Pressable>
 
       <ScrollView
@@ -106,10 +97,11 @@ export default function RecipeDetailScreen() {
         <View style={styles.hero}>
           {recipe.imageUrl ? (
             <Image
-              source={{ uri: recipe.imageUrl }}
+              source={{ uri: sizedImage(recipe.imageUrl, 1280)! }}
               style={StyleSheet.absoluteFill}
               contentFit="cover"
               transition={250}
+              cachePolicy="disk"
             />
           ) : (
             <View style={[StyleSheet.absoluteFill, styles.placeholder]}>
@@ -117,12 +109,21 @@ export default function RecipeDetailScreen() {
             </View>
           )}
           <LinearGradient
-            colors={[
-              "rgba(17,12,9,0.25)",
-              "rgba(17,12,9,0)",
-              "rgba(17,12,9,0.45)",
-              "rgba(17,12,9,0.97)",
-            ]}
+            colors={
+              scheme === "dark"
+                ? [
+                    "rgba(17,12,9,0.25)",
+                    "rgba(17,12,9,0)",
+                    "rgba(17,12,9,0.45)",
+                    "rgba(17,12,9,0.97)",
+                  ]
+                : [
+                    "rgba(17,12,9,0.25)",
+                    "rgba(17,12,9,0)",
+                    "rgba(255,253,250,0.5)",
+                    "rgba(255,253,250,0.99)",
+                  ]
+            }
             style={StyleSheet.absoluteFill}
           />
           <View style={styles.heroBody}>
@@ -161,38 +162,14 @@ export default function RecipeDetailScreen() {
             style={styles.actions}
           >
             <ActionButton
-              active={recipe.isFavorite}
               onPress={() =>
-                patch.mutate({
-                  id: recipe.id,
-                  patch: { isFavorite: !recipe.isFavorite },
+                router.push({
+                  pathname: "/edit/[id]",
+                  params: { id: recipe.id },
                 })
               }
-              icon={
-                <Heart
-                  size={18}
-                  color={recipe.isFavorite ? colors.accent : colors.muted}
-                  fill={recipe.isFavorite ? colors.accent : "transparent"}
-                />
-              }
-              label="Favourite"
-            />
-            <ActionButton
-              onPress={() =>
-                patch.mutate({
-                  id: recipe.id,
-                  patch: {
-                    timesCooked: recipe.timesCooked + 1,
-                    lastCookedAt: new Date().toISOString(),
-                  },
-                })
-              }
-              icon={<Utensils size={18} color={colors.muted} />}
-              label={
-                recipe.timesCooked > 0
-                  ? `Cooked ${recipe.timesCooked}×`
-                  : "Cooked"
-              }
+              icon={<Pencil size={18} color={colors.muted} />}
+              label="Edit"
             />
             <ActionButton
               onPress={() =>
@@ -248,23 +225,18 @@ export default function RecipeDetailScreen() {
 function ActionButton({
   icon,
   label,
-  active,
   onPress,
 }: {
   icon: ReactNode;
   label: string;
-  active?: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Pressable
       onPress={onPress}
       style={({ pressed }) => [
         styles.action,
-        active && {
-          borderColor: colors.accent,
-          backgroundColor: colors.accentSoft,
-        },
         pressed && { opacity: 0.75, transform: [{ scale: 0.97 }] },
       ]}
     >
@@ -274,7 +246,7 @@ function ActionButton({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   screen: {
     flex: 1,
     backgroundColor: colors.background,
@@ -287,20 +259,10 @@ const styles = StyleSheet.create({
     marginTop: 64,
     paddingHorizontal: 32,
   },
+  // Floats over the photo — dark scrim with light icon in both themes.
   backButton: {
     position: "absolute",
     left: 16,
-    zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: radius.full,
-    backgroundColor: "rgba(17,12,9,0.55)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  editButton: {
-    position: "absolute",
-    right: 16,
     zIndex: 10,
     width: 40,
     height: 40,
@@ -327,16 +289,17 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 6,
   },
+  // Tags sit over the photo, so they keep a dark scrim in both themes.
   tag: {
     borderWidth: 1,
-    borderColor: colors.borderStrong,
+    borderColor: "rgba(243,237,226,0.3)",
     borderRadius: radius.full,
     paddingHorizontal: 10,
     paddingVertical: 3,
-    backgroundColor: "rgba(17,12,9,0.35)",
+    backgroundColor: "rgba(17,12,9,0.45)",
   },
   tagText: {
-    color: colors.textSecondary,
+    color: "#E8DFD2",
     fontFamily: font.medium,
     fontSize: 11,
   },

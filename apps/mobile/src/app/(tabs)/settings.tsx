@@ -1,50 +1,39 @@
 import * as Linking from "expo-linking";
-import * as Updates from "expo-updates";
 import {
   BookOpen,
   ExternalLink,
   Globe,
   Info,
-  RefreshCw,
+  Monitor,
+  Moon,
+  Sun,
 } from "lucide-react-native";
-import type { ReactNode } from "react";
-import {
-  Alert,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import type { ComponentType, ReactNode } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Card, SectionTitle } from "@/components/ui";
-import { colors, font, radius } from "@/lib/theme";
+import { font, radius, type Palette } from "@/lib/theme";
+import {
+  useTheme,
+  useThemedStyles,
+  type ThemeMode,
+} from "@/lib/theme-context";
 
 const WEB_URL = "https://bitebook.hxndev.com";
 
-const updateInfo = Updates.isEmbeddedLaunch
-  ? "Built-in bundle (no OTA update applied)"
-  : `Update ${Updates.updateId?.slice(0, 8) ?? "?"} · ${
-      Updates.createdAt?.toLocaleString() ?? ""
-    }`;
-
-async function checkForUpdate() {
-  try {
-    const result = await Updates.checkForUpdateAsync();
-    if (!result.isAvailable) {
-      Alert.alert("Up to date", "You're already on the latest version.");
-      return;
-    }
-    await Updates.fetchUpdateAsync();
-    Alert.alert("Update ready", "Restart now to apply it?", [
-      { text: "Later", style: "cancel" },
-      { text: "Restart", onPress: () => Updates.reloadAsync() },
-    ]);
-  } catch (err) {
-    Alert.alert("Update check failed", String(err));
-  }
-}
+const MODES: {
+  value: ThemeMode;
+  label: string;
+  icon: ComponentType<{ size: number; color: string }>;
+}[] = [
+  { value: "system", label: "System", icon: Monitor },
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+];
 
 export default function SettingsScreen() {
+  const { colors, mode, setMode } = useTheme();
+  const styles = useThemedStyles(createStyles);
+
   return (
     <ScrollView
       style={styles.screen}
@@ -61,6 +50,35 @@ export default function SettingsScreen() {
         </Text>
       </Card>
 
+      <SectionTitle>Appearance</SectionTitle>
+      <Card style={{ padding: 6 }}>
+        <View style={styles.modeRow}>
+          {MODES.map((m) => {
+            const active = mode === m.value;
+            return (
+              <Pressable
+                key={m.value}
+                onPress={() => setMode(m.value)}
+                style={[styles.modeButton, active && styles.modeButtonActive]}
+              >
+                <m.icon
+                  size={17}
+                  color={active ? colors.primary : colors.muted}
+                />
+                <Text
+                  style={[
+                    styles.modeLabel,
+                    active && { color: colors.primary },
+                  ]}
+                >
+                  {m.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </Card>
+
       <SectionTitle>More</SectionTitle>
 
       <Card style={{ padding: 0 }}>
@@ -75,14 +93,7 @@ export default function SettingsScreen() {
         <Row
           icon={<Info size={18} color={colors.primary} />}
           label="Version"
-          detail={`1.0.0 · ${updateInfo}`}
-        />
-        <View style={styles.divider} />
-        <Row
-          icon={<RefreshCw size={18} color={colors.primary} />}
-          label="Check for updates"
-          detail="Fetch the latest version now"
-          onPress={checkForUpdate}
+          detail="1.0.0"
         />
       </Card>
     </ScrollView>
@@ -102,6 +113,7 @@ function Row({
   onPress?: () => void;
   trailing?: ReactNode;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -118,63 +130,85 @@ function Row({
   );
 }
 
-const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  content: {
-    padding: 20,
-    gap: 14,
-  },
-  aboutCard: {
-    alignItems: "center",
-    gap: 8,
-    paddingVertical: 28,
-  },
-  iconBadge: {
-    width: 60,
-    height: 60,
-    borderRadius: radius.xl,
-    backgroundColor: colors.primarySoft,
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 4,
-  },
-  appName: {
-    color: colors.text,
-    fontFamily: font.displaySemibold,
-    fontSize: 24,
-  },
-  appTag: {
-    color: colors.muted,
-    fontFamily: font.regular,
-    fontSize: 13,
-    textAlign: "center",
-    lineHeight: 19,
-    maxWidth: 260,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 14,
-    paddingHorizontal: 16,
-    paddingVertical: 15,
-  },
-  rowLabel: {
-    color: colors.text,
-    fontFamily: font.medium,
-    fontSize: 15,
-  },
-  rowDetail: {
-    color: colors.muted,
-    fontFamily: font.regular,
-    fontSize: 12,
-    marginTop: 1,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: colors.border,
-    marginLeft: 48,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    content: {
+      padding: 20,
+      gap: 14,
+    },
+    aboutCard: {
+      alignItems: "center",
+      gap: 8,
+      paddingVertical: 28,
+    },
+    iconBadge: {
+      width: 60,
+      height: 60,
+      borderRadius: radius.xl,
+      backgroundColor: colors.primarySoft,
+      alignItems: "center",
+      justifyContent: "center",
+      marginBottom: 4,
+    },
+    appName: {
+      color: colors.text,
+      fontFamily: font.displaySemibold,
+      fontSize: 24,
+    },
+    appTag: {
+      color: colors.muted,
+      fontFamily: font.regular,
+      fontSize: 13,
+      textAlign: "center",
+      lineHeight: 19,
+      maxWidth: 260,
+    },
+    modeRow: {
+      flexDirection: "row",
+      gap: 6,
+    },
+    modeButton: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 7,
+      paddingVertical: 12,
+      borderRadius: radius.md - 4,
+    },
+    modeButtonActive: {
+      backgroundColor: colors.primarySoft,
+    },
+    modeLabel: {
+      color: colors.muted,
+      fontFamily: font.semibold,
+      fontSize: 13,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 14,
+      paddingHorizontal: 16,
+      paddingVertical: 15,
+    },
+    rowLabel: {
+      color: colors.text,
+      fontFamily: font.medium,
+      fontSize: 15,
+    },
+    rowDetail: {
+      color: colors.muted,
+      fontFamily: font.regular,
+      fontSize: 12,
+      marginTop: 1,
+    },
+    divider: {
+      height: 1,
+      backgroundColor: colors.border,
+      marginLeft: 48,
+    },
+  });

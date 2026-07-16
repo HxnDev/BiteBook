@@ -7,7 +7,8 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
-import { colors, font, radius } from "@/lib/theme";
+import { font, radius, type Palette } from "@/lib/theme";
+import { useTheme, useThemedStyles } from "@/lib/theme-context";
 
 export function Button({
   label,
@@ -24,6 +25,8 @@ export function Button({
   icon?: ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -61,23 +64,24 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-  },
-  outline: {
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: colors.borderStrong,
-  },
-  label: {
-    fontFamily: font.bold,
-    fontSize: 15,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    base: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 8,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      paddingHorizontal: 18,
+    },
+    outline: {
+      backgroundColor: "transparent",
+      borderWidth: 1,
+      borderColor: colors.borderStrong,
+    },
+    label: {
+      fontFamily: font.bold,
+      fontSize: 15,
+    },
+  });

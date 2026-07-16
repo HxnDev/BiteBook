@@ -1,8 +1,10 @@
 import { Tabs } from "expo-router";
-import { BookOpen, House, Plus, Settings } from "lucide-react-native";
-import { colors, font } from "@/lib/theme";
+import { BookOpen, Settings } from "lucide-react-native";
+import { font } from "@/lib/theme";
+import { useTheme } from "@/lib/theme-context";
 
 export default function TabsLayout() {
+  const { colors } = useTheme();
   return (
     <Tabs
       screenOptions={{
@@ -26,24 +28,9 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Home",
-          headerShown: false,
-          tabBarIcon: ({ color }) => <House size={22} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="recipes"
-        options={{
           title: "Recipes",
           headerShown: false,
           tabBarIcon: ({ color }) => <BookOpen size={22} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="add"
-        options={{
-          title: "Add",
-          tabBarIcon: ({ color }) => <Plus size={22} color={color} />,
         }}
       />
       <Tabs.Screen

@@ -24,7 +24,8 @@ import {
   type RecipeInput,
   type Unit,
 } from "@/lib/recipes/types";
-import { colors, font, radius } from "@/lib/theme";
+import { font, radius, type Palette } from "@/lib/theme";
+import { useTheme, useThemedStyles } from "@/lib/theme-context";
 
 /** Local id for dynamic rows (crypto.randomUUID isn't available on Hermes). */
 function uid(): string {
@@ -61,6 +62,8 @@ export function RecipeForm({
   submitLabel: string;
   onSubmit: (input: RecipeInput) => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   const [title, setTitle] = useState(recipe?.title ?? "");
   const [description, setDescription] = useState(recipe?.description ?? "");
   const [category, setCategory] = useState<Category>(
@@ -431,6 +434,8 @@ export function RecipeForm({
 }
 
 function SectionHeader({ title, onAdd }: { title: string; onAdd: () => void }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -451,6 +456,7 @@ function Field({
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <View style={style}>
       <Text style={styles.label}>{label}</Text>
@@ -459,7 +465,7 @@ function Field({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: Palette) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, gap: 14, paddingBottom: 56 },
   label: {

@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Pressable, StyleSheet, Text } from "react-native";
-import { colors, font, radius } from "@/lib/theme";
+import { font, radius, type Palette } from "@/lib/theme";
+import { useTheme, useThemedStyles } from "@/lib/theme-context";
 
 export function Chip({
   label,
@@ -13,6 +14,8 @@ export function Chip({
   icon?: ReactNode;
   onPress: () => void;
 }) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -30,25 +33,26 @@ export function Chip({
   );
 }
 
-const styles = StyleSheet.create({
-  chip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.full,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    backgroundColor: colors.card,
-  },
-  active: {
-    backgroundColor: colors.primarySoft,
-    borderColor: colors.primaryBorder,
-  },
-  label: {
-    color: colors.muted,
-    fontFamily: font.semibold,
-    fontSize: 13,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    chip: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 6,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.full,
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      backgroundColor: colors.card,
+    },
+    active: {
+      backgroundColor: colors.primarySoft,
+      borderColor: colors.primaryBorder,
+    },
+    label: {
+      color: colors.muted,
+      fontFamily: font.semibold,
+      fontSize: 13,
+    },
+  });

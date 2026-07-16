@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Moon, Sun, Plus } from "lucide-react";
+import { Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { buttonVariants } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
 
 const LINKS = [
@@ -88,13 +87,6 @@ export function Navbar() {
               <Moon className="size-4" />
             )}
           </button>
-          <Link
-            to="/recipes/new"
-            className={cn(buttonVariants({ size: "sm" }), "gap-1.5")}
-          >
-            <Plus className="size-4" />
-            <span className="hidden sm:inline">Add recipe</span>
-          </Link>
         </div>
       </nav>
     </motion.header>

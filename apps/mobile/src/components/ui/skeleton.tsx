@@ -6,7 +6,8 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
-import { colors, radius } from "@/lib/theme";
+import { radius } from "@/lib/theme";
+import { useTheme } from "@/lib/theme-context";
 
 /** Pulsing placeholder block shown while content loads. */
 export function Skeleton({
@@ -16,6 +17,7 @@ export function Skeleton({
   height?: number;
   style?: StyleProp<ViewStyle>;
 }) {
+  const { colors } = useTheme();
   const opacity = useSharedValue(0.45);
 
   useEffect(() => {

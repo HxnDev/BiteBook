@@ -70,18 +70,3 @@ export async function duplicateRecipe(id: string): Promise<Recipe> {
   return copy;
 }
 
-export async function patchRecipe(
-  id: string,
-  patch: Partial<Recipe>,
-): Promise<Recipe> {
-  const existing = await idbGet<Recipe>(id);
-  if (!existing) throw new Error("Recipe not found");
-  const updated: Recipe = {
-    ...existing,
-    ...patch,
-    id,
-    updatedAt: new Date().toISOString(),
-  };
-  await idbPut(updated);
-  return updated;
-}

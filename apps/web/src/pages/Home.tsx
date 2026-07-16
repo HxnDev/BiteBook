@@ -3,9 +3,8 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
   BookOpen,
-  Heart,
   Beef,
-  Flame,
+  Tags,
   Loader2,
   ArrowRight,
   Plus,
@@ -29,9 +28,8 @@ export default function Home() {
     const highProtein = list.filter(
       (r) => (per100g(r)?.protein ?? 0) >= 15,
     ).length;
-    const favorites = list.filter((r) => r.isFavorite).length;
-    const cooked = list.reduce((sum, r) => sum + r.timesCooked, 0);
-    return { total: list.length, highProtein, favorites, cooked };
+    const categories = new Set(list.map((r) => r.category)).size;
+    return { total: list.length, highProtein, categories };
   }, [recipes]);
 
   const recent = (recipes ?? []).slice(0, 6);
@@ -39,8 +37,7 @@ export default function Home() {
   const cards = [
     { icon: BookOpen, label: "Recipes", value: stats.total },
     { icon: Beef, label: "High protein", value: stats.highProtein },
-    { icon: Heart, label: "Favourites", value: stats.favorites },
-    { icon: Flame, label: "Times cooked", value: stats.cooked },
+    { icon: Tags, label: "Categories", value: stats.categories },
   ];
 
   return (
@@ -69,7 +66,7 @@ export default function Home() {
               initial="hidden"
               whileInView="show"
               viewport={{ once: true, amount: 0.2 }}
-              className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+              className="mt-10 grid gap-4 sm:grid-cols-3"
             >
               {cards.map((c) => (
                 <motion.div

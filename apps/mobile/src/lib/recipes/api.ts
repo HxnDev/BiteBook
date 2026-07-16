@@ -181,16 +181,3 @@ export async function duplicateRecipe(recipe: Recipe): Promise<Recipe> {
     lastCookedAt: null,
   });
 }
-
-export async function patchRecipe(
-  id: string,
-  patch: Partial<Recipe>,
-): Promise<Recipe> {
-  const apiPatch: Record<string, unknown> = {};
-  if ("isFavorite" in patch) apiPatch.is_favorite = patch.isFavorite;
-  if ("timesCooked" in patch) apiPatch.times_cooked = patch.timesCooked;
-  if ("lastCookedAt" in patch) apiPatch.last_cooked_at = patch.lastCookedAt;
-
-  const row = (await apiPost({ action: "patch", id, patch: apiPatch })) as Row;
-  return rowToRecipe(row);
-}

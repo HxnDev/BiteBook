@@ -11,6 +11,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SmoothScroll } from "@/components/providers/SmoothScroll";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { FloatingAddButton } from "@/components/layout/FloatingAddButton";
 import { Preloader } from "@/components/Preloader";
 
 import Home from "@/pages/Home";
@@ -61,6 +62,7 @@ export default function App() {
         <SmoothScroll>
           <Navbar />
           <AnimatedRoutes />
+          <FloatingAddButton />
           <Footer />
         </SmoothScroll>
       </BrowserRouter>

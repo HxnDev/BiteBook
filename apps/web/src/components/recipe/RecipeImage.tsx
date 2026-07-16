@@ -1,4 +1,5 @@
 import { UtensilsCrossed } from "lucide-react";
+import { sizedImage } from "@/lib/image";
 import { cn } from "@/lib/utils";
 
 const GRADIENTS = [
@@ -18,19 +19,23 @@ export function RecipeImage({
   src,
   alt,
   seed,
+  width = 800,
   className,
 }: {
   src: string | null;
   alt: string;
   seed: string;
+  /** Rendered width hint — Google's CDN serves a resized variant. */
+  width?: number;
   className?: string;
 }) {
   if (src) {
     return (
       <img
-        src={src}
+        src={sizedImage(src, width)}
         alt={alt}
         loading="lazy"
+        decoding="async"
         // Google's image CDN (lh3) answers 429 when a Referer header is sent.
         referrerPolicy="no-referrer"
         className={cn("h-full w-full object-cover", className)}

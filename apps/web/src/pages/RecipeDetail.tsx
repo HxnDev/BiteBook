@@ -1,16 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  ArrowLeft,
-  Copy,
-  Heart,
-  Loader2,
-  Pencil,
-  Trash2,
-  Utensils,
-  Check,
-} from "lucide-react";
+import { ArrowLeft, Copy, Loader2, Pencil, Trash2 } from "lucide-react";
 import { Page } from "@/components/layout/Page";
 import { PlaceholderPage } from "@/components/PlaceholderPage";
 import { RecipeImage } from "@/components/recipe/RecipeImage";
@@ -20,20 +11,17 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import {
   useDeleteRecipe,
   useDuplicateRecipe,
-  usePatchRecipe,
   useRecipe,
 } from "@/hooks/recipes";
 import { fmt, per100g } from "@/lib/recipes/macros";
 import { fadeUp, stagger } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import type { Recipe } from "@/lib/recipes/types";
 
 export default function RecipeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: recipe, isLoading } = useRecipe(id);
 
-  const patch = usePatchRecipe();
   const duplicate = useDuplicateRecipe();
   const remove = useDeleteRecipe();
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -71,6 +59,7 @@ export default function RecipeDetail() {
           src={recipe.imageUrl}
           alt={recipe.title}
           seed={recipe.id}
+          width={1600}
           className="scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/50 to-background/10" />
@@ -122,34 +111,6 @@ export default function RecipeDetail() {
             <span className="hidden sm:inline">All recipes</span>
           </Link>
           <div className="ml-auto flex items-center gap-2">
-            <button
-              onClick={() =>
-                patch.mutate({
-                  id: recipe.id,
-                  patch: { isFavorite: !recipe.isFavorite },
-                })
-              }
-              className={cn(
-                "grid size-10 place-items-center rounded-full border transition-colors",
-                recipe.isFavorite
-                  ? "border-accent/50 bg-accent/15 text-accent"
-                  : "border-border text-muted-foreground hover:text-foreground",
-              )}
-              aria-label="Toggle favourite"
-            >
-              <Heart
-                className={cn("size-4", recipe.isFavorite && "fill-current")}
-              />
-            </button>
-            <CookedButton recipe={recipe} onCook={() =>
-              patch.mutate({
-                id: recipe.id,
-                patch: {
-                  timesCooked: recipe.timesCooked + 1,
-                  lastCookedAt: new Date().toISOString(),
-                },
-              })
-            } />
             <button
               onClick={() =>
                 duplicate.mutate(recipe.id, {
@@ -276,36 +237,6 @@ export default function RecipeDetail() {
         }
       />
     </Page>
-  );
-}
-
-function CookedButton({
-  recipe,
-  onCook,
-}: {
-  recipe: Recipe;
-  onCook: () => void;
-}) {
-  const [justCooked, setJustCooked] = useState(false);
-  return (
-    <button
-      onClick={() => {
-        onCook();
-        setJustCooked(true);
-        setTimeout(() => setJustCooked(false), 1500);
-      }}
-      className="hidden items-center gap-1.5 rounded-full border border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground md:inline-flex"
-      title={
-        recipe.timesCooked > 0 ? `Cooked ${recipe.timesCooked}×` : "Mark cooked"
-      }
-    >
-      {justCooked ? (
-        <Check className="size-4 text-primary" />
-      ) : (
-        <Utensils className="size-4" />
-      )}
-      {recipe.timesCooked > 0 ? `${recipe.timesCooked}×` : "Cooked"}
-    </button>
   );
 }
 

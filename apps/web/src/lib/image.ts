@@ -24,6 +24,16 @@ export async function compressImage(
   return canvas.toDataURL("image/jpeg", quality);
 }
 
+/**
+ * Google's image CDN (lh3.googleusercontent.com) resizes on the fly via a
+ * `=wNNN` suffix; requesting the display size instead of the full upload makes
+ * grids load much faster and the browser caches each variant.
+ */
+export function sizedImage(url: string, width: number): string {
+  if (!url.startsWith("https://lh3.googleusercontent.com/")) return url;
+  return `${url.split("=")[0]}=w${width}`;
+}
+
 function readAsDataURL(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

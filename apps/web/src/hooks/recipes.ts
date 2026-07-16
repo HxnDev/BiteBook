@@ -10,10 +10,9 @@ import {
   duplicateRecipe,
   getRecipe,
   listRecipes,
-  patchRecipe,
   updateRecipe,
 } from "@/lib/recipes/api";
-import type { Recipe, RecipeInput } from "@/lib/recipes/types";
+import type { RecipeInput } from "@/lib/recipes/types";
 
 const keys = {
   all: ["recipes"] as const,
@@ -73,18 +72,6 @@ export function useDuplicateRecipe() {
   return useMutation({
     mutationFn: (id: string) => duplicateRecipe(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: keys.all }),
-  });
-}
-
-export function usePatchRecipe() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, patch }: { id: string; patch: Partial<Recipe> }) =>
-      patchRecipe(id, patch),
-    onSuccess: (r) => {
-      qc.invalidateQueries({ queryKey: keys.all });
-      qc.invalidateQueries({ queryKey: keys.detail(r.id) });
-    },
   });
 }
 

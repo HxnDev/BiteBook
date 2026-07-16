@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
-import { categoryColors, colors, font, radius, tint } from "@/lib/theme";
+import { categoryColors, font, radius, tint } from "@/lib/theme";
+import { useTheme } from "@/lib/theme-context";
 
 export function CategoryPill({
   category,
@@ -8,12 +9,13 @@ export function CategoryPill({
   category: string;
   small?: boolean;
 }) {
+  const { colors, scheme } = useTheme();
   const color = categoryColors[category] ?? colors.muted;
   return (
     <View
       style={[
         styles.pill,
-        { backgroundColor: tint(color, 0.16) },
+        { backgroundColor: tint(color, scheme === "dark" ? 0.16 : 0.14) },
         small && styles.small,
       ]}
     >

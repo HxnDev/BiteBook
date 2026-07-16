@@ -1,9 +1,11 @@
 import { StyleSheet, Text, View } from "react-native";
 import { Card } from "@/components/ui";
 import type { Ingredient } from "@/lib/recipes/types";
-import { colors, font } from "@/lib/theme";
+import { font, type Palette } from "@/lib/theme";
+import { useThemedStyles } from "@/lib/theme-context";
 
 export function IngredientList({ ingredients }: { ingredients: Ingredient[] }) {
+  const styles = useThemedStyles(createStyles);
   return (
     <Card style={{ padding: 0 }}>
       {ingredients.length === 0 ? (
@@ -23,34 +25,35 @@ export function IngredientList({ ingredients }: { ingredients: Ingredient[] }) {
   );
 }
 
-const styles = StyleSheet.create({
-  empty: {
-    color: colors.muted,
-    fontFamily: font.regular,
-    fontSize: 14,
-    padding: 16,
-  },
-  row: {
-    flexDirection: "row",
-    alignItems: "baseline",
-    justifyContent: "space-between",
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 13,
-  },
-  rowBorder: {
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  name: {
-    color: colors.text,
-    fontFamily: font.regular,
-    fontSize: 15,
-    flex: 1,
-  },
-  qty: {
-    color: colors.muted,
-    fontFamily: font.medium,
-    fontSize: 13,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    empty: {
+      color: colors.muted,
+      fontFamily: font.regular,
+      fontSize: 14,
+      padding: 16,
+    },
+    row: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      justifyContent: "space-between",
+      gap: 12,
+      paddingHorizontal: 16,
+      paddingVertical: 13,
+    },
+    rowBorder: {
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    name: {
+      color: colors.text,
+      fontFamily: font.regular,
+      fontSize: 15,
+      flex: 1,
+    },
+    qty: {
+      color: colors.muted,
+      fontFamily: font.medium,
+      fontSize: 13,
+    },
+  });

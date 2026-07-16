@@ -15,4 +15,3 @@ export const updateRecipe = impl.updateRecipe;
 export const deleteRecipe = impl.deleteRecipe;
 export const deleteRecipes = impl.deleteRecipes;
 export const duplicateRecipe = impl.duplicateRecipe;
-export const patchRecipe = impl.patchRecipe;

@@ -24,14 +24,13 @@ import type { Category, Recipe } from "@/lib/recipes/types";
 import { stagger } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-type Sort = "newest" | "oldest" | "protein" | "calories" | "cooked" | "az";
+type Sort = "newest" | "oldest" | "protein" | "calories" | "az";
 
 const SORTS: { value: Sort; label: string }[] = [
   { value: "newest", label: "Newest" },
   { value: "oldest", label: "Oldest" },
   { value: "protein", label: "Highest protein" },
   { value: "calories", label: "Lowest calories" },
-  { value: "cooked", label: "Most cooked" },
   { value: "az", label: "A–Z" },
 ];
 
@@ -72,8 +71,6 @@ export default function Recipes() {
           return a.createdAt < b.createdAt ? -1 : 1;
         case "az":
           return a.title.localeCompare(b.title);
-        case "cooked":
-          return b.timesCooked - a.timesCooked;
         case "protein":
           return (per100g(b)?.protein ?? -1) - (per100g(a)?.protein ?? -1);
         case "calories":
@@ -140,21 +137,13 @@ export default function Recipes() {
   return (
     <Page>
       <div className="container py-28 md:py-32">
-        <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
-          <div>
-            <p className="mb-3 text-xs uppercase tracking-[0.3em] text-primary">
-              The book
-            </p>
-            <h1 className="font-display text-[clamp(2.4rem,6vw,4.5rem)] font-light leading-none">
-              Your recipes
-            </h1>
-          </div>
-          <Link
-            to="/recipes/new"
-            className={cn(buttonVariants({ size: "lg" }), "gap-2")}
-          >
-            <Plus className="size-4" /> Add recipe
-          </Link>
+        <div className="mb-10">
+          <p className="mb-3 text-xs uppercase tracking-[0.3em] text-primary">
+            The book
+          </p>
+          <h1 className="font-display text-[clamp(2.4rem,6vw,4.5rem)] font-light leading-none">
+            Your recipes
+          </h1>
         </div>
 
         {/* Controls */}

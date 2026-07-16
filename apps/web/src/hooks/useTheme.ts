@@ -4,10 +4,12 @@ type Theme = "dark" | "light";
 const KEY = "bitebook-theme";
 
 function getInitial(): Theme {
-  if (typeof window === "undefined") return "dark";
+  if (typeof window === "undefined") return "light";
   const stored = localStorage.getItem(KEY) as Theme | null;
   if (stored === "dark" || stored === "light") return stored;
-  return "dark";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 }
 
 export function useTheme() {

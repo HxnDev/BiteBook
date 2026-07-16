@@ -6,8 +6,8 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "bitebook",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#110C09",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#FFFDFA",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.hxndev.bitebook"
@@ -15,7 +15,7 @@
     "android": {
       "package": "com.hxndev.bitebook",
       "adaptiveIcon": {
-        "backgroundColor": "#110C09",
+        "backgroundColor": "#FFF6EC",
         "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
       "predictiveBackGestureEnabled": false
@@ -37,7 +37,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#110C09",
+          "backgroundColor": "#FFF6EC",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 220
         }
