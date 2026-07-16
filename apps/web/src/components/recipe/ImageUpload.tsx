@@ -37,7 +37,12 @@ export function ImageUpload({
 
       {value ? (
         <div className="group relative aspect-[4/3] overflow-hidden rounded-2xl border border-border">
-          <img src={value} alt="Recipe" className="h-full w-full object-cover" />
+          <img
+            src={value}
+            alt="Recipe"
+            referrerPolicy="no-referrer"
+            className="h-full w-full object-cover"
+          />
           <div className="absolute inset-0 flex items-end justify-between bg-gradient-to-t from-black/60 to-transparent p-3 opacity-0 transition-opacity group-hover:opacity-100">
             <button
               type="button"

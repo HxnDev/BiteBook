@@ -1,22 +1,19 @@
-/**
- * CRUD against the BiteBook Apps Script backend (Google Sheets + Drive) —
- * plain async functions, no React. Query/mutation hooks live in
- * src/hooks/use-recipes.ts. See backend/apps-script/Code.gs for the API.
- */
-import * as FileSystem from "expo-file-system/legacy";
-import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import type { Ingredient, Recipe, RecipeInput } from "./types";
 
-const API_URL = process.env.EXPO_PUBLIC_BITEBOOK_API_URL;
-const API_SECRET = process.env.EXPO_PUBLIC_BITEBOOK_API_SECRET;
+/**
+ * Recipe store backed by the BiteBook Apps Script web app
+ * (Google Sheets for data, Google Drive for photos).
+ * See backend/apps-script/Code.gs for the API contract.
+ */
 
-if (!API_URL || !API_SECRET) {
-  throw new Error(
-    "Missing API config — copy apps/mobile/.env.example to apps/mobile/.env",
-  );
-}
+const API_URL = import.meta.env.VITE_BITEBOOK_API_URL as string | undefined;
+const API_SECRET = import.meta.env.VITE_BITEBOOK_API_SECRET as
+  | string
+  | undefined;
 
-/** API row shape (snake_case). */
+export const isApiConfigured = Boolean(API_URL && API_SECRET);
+
+/** API row shape (snake_case) — same as the old Supabase rows. */
 interface Row {
   id: string;
   title: string;
@@ -61,7 +58,8 @@ function rowToRecipe(r: Row): Recipe {
   };
 }
 
-async function parseResponse(res: Response): Promise<unknown> {
+async function apiGet(params: Record<string, string>): Promise<unknown> {
+  const res = await fetch(`${API_URL}?${new URLSearchParams(params)}`);
   if (!res.ok) throw new Error(`API request failed (${res.status})`);
   const data = await res.json();
   if (data && typeof data === "object" && "error" in data) {
@@ -70,50 +68,44 @@ async function parseResponse(res: Response): Promise<unknown> {
   return data;
 }
 
-async function apiGet(params: Record<string, string>): Promise<unknown> {
-  const query = Object.entries(params)
-    .map(([k, v]) => `${k}=${encodeURIComponent(v)}`)
-    .join("&");
-  return parseResponse(await fetch(`${API_URL}?${query}`));
-}
-
-/** Content-Type stays text/plain: Apps Script cannot answer CORS preflights. */
+/**
+ * Writes go through POST. Content-Type must stay text/plain: Apps Script
+ * cannot answer CORS preflights, and text/plain requests skip them.
+ */
 async function apiPost(body: Record<string, unknown>): Promise<unknown> {
-  return parseResponse(
-    await fetch(API_URL!, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain" },
-      body: JSON.stringify({ secret: API_SECRET, ...body }),
-    }),
-  );
+  const res = await fetch(API_URL!, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({ secret: API_SECRET, ...body }),
+  });
+  if (!res.ok) throw new Error(`API request failed (${res.status})`);
+  const data = await res.json();
+  if (data && typeof data === "object" && "error" in data) {
+    throw new Error(String((data as { error: unknown }).error));
+  }
+  return data;
 }
 
 /**
- * Turns the form's image value into API fields. Newly picked photos are local
- * file URIs: resize + compress, then send as base64 for Drive upload. Remote
- * URLs pass through, so saving without touching the photo never re-uploads.
+ * Splits the form's image value into API fields. Newly picked photos arrive
+ * as compressed data URLs and are sent as base64 for Drive upload; existing
+ * remote URLs pass through untouched.
  */
-async function imageFields(imageUrl: string | null): Promise<{
+function imageFields(imageUrl: string | null): {
   image_url?: string | null;
   imageBase64?: string;
   imageContentType?: string;
-}> {
-  if (!imageUrl || !imageUrl.startsWith("file:")) {
+} {
+  if (!imageUrl || !imageUrl.startsWith("data:")) {
     return { image_url: imageUrl };
   }
-  const manipulated = await manipulateAsync(
-    imageUrl,
-    [{ resize: { width: 1280 } }],
-    { compress: 0.8, format: SaveFormat.JPEG },
-  );
-  const base64 = await FileSystem.readAsStringAsync(manipulated.uri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  return { imageBase64: base64, imageContentType: "image/jpeg" };
+  const [meta, base64] = imageUrl.split(",");
+  const contentType = meta.slice(5, meta.indexOf(";")) || "image/jpeg";
+  return { imageBase64: base64, imageContentType: contentType };
 }
 
-async function inputToApi(input: RecipeInput) {
-  const { image_url, imageBase64, imageContentType } = await imageFields(
+function inputToApi(input: RecipeInput) {
+  const { image_url, imageBase64, imageContentType } = imageFields(
     input.imageUrl,
   );
   return {
@@ -142,16 +134,13 @@ export async function listRecipes(): Promise<Recipe[]> {
   return rows.map(rowToRecipe);
 }
 
-export async function getRecipe(id: string): Promise<Recipe | null> {
+export async function getRecipe(id: string): Promise<Recipe | undefined> {
   const row = (await apiGet({ action: "get", id })) as Row | null;
-  return row ? rowToRecipe(row) : null;
+  return row ? rowToRecipe(row) : undefined;
 }
 
 export async function createRecipe(input: RecipeInput): Promise<Recipe> {
-  const row = (await apiPost({
-    action: "create",
-    ...(await inputToApi(input)),
-  })) as Row;
+  const row = (await apiPost({ action: "create", ...inputToApi(input) })) as Row;
   return rowToRecipe(row);
 }
 
@@ -162,9 +151,13 @@ export async function updateRecipe(
   const row = (await apiPost({
     action: "update",
     id,
-    ...(await inputToApi(input)),
+    ...inputToApi(input),
   })) as Row;
   return rowToRecipe(row);
+}
+
+export async function deleteRecipe(id: string): Promise<void> {
+  await apiPost({ action: "delete", ids: [id] });
 }
 
 export async function deleteRecipes(ids: string[]): Promise<void> {
@@ -172,13 +165,13 @@ export async function deleteRecipes(ids: string[]): Promise<void> {
   await apiPost({ action: "delete", ids });
 }
 
-export async function duplicateRecipe(recipe: Recipe): Promise<Recipe> {
+export async function duplicateRecipe(id: string): Promise<Recipe> {
+  const existing = await getRecipe(id);
+  if (!existing) throw new Error("Recipe not found");
   return createRecipe({
-    ...recipe,
-    title: `${recipe.title} (copy)`,
+    ...existing,
+    title: `${existing.title} (copy)`,
     isFavorite: false,
-    timesCooked: 0,
-    lastCookedAt: null,
   });
 }
 

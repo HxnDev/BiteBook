@@ -44,7 +44,7 @@ export interface Recipe {
   description: string;
   category: Category;
   tags: string[];
-  /** Compressed data URL (local) or remote URL (Supabase, later). */
+  /** Compressed data URL (freshly picked) or remote URL (Google Drive). */
   imageUrl: string | null;
   ingredients: Ingredient[];
   instructions: string[];

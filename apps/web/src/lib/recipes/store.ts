@@ -3,7 +3,7 @@ import type { Recipe, RecipeInput } from "./types";
 
 /**
  * Local-first recipe store backed by IndexedDB. The async signatures mirror the
- * Supabase-backed implementation, so the two are a drop-in swap.
+ * remote (Apps Script) implementation, so the two are a drop-in swap.
  */
 
 function fromInput(input: RecipeInput): Recipe {

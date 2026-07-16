@@ -1,12 +1,12 @@
-import { isSupabaseConfigured } from "@/lib/supabase";
 import * as local from "./store";
-import * as remote from "./supabaseStore";
+import * as remote from "./sheetsStore";
 
 /**
- * Single entry point for recipe data. Uses Supabase when configured (env vars
- * present), otherwise falls back to the local IndexedDB store.
+ * Single entry point for recipe data. Uses the Apps Script backend when
+ * configured (env vars present), otherwise falls back to the local
+ * IndexedDB store.
  */
-const impl = isSupabaseConfigured ? remote : local;
+const impl = remote.isApiConfigured ? remote : local;
 
 export const listRecipes = impl.listRecipes;
 export const getRecipe = impl.getRecipe;

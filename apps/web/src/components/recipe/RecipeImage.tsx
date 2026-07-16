@@ -31,6 +31,8 @@ export function RecipeImage({
         src={src}
         alt={alt}
         loading="lazy"
+        // Google's image CDN (lh3) answers 429 when a Referer header is sent.
+        referrerPolicy="no-referrer"
         className={cn("h-full w-full object-cover", className)}
       />
     );

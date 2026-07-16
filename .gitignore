@@ -3,6 +3,9 @@ dist
 dist-ssr
 *.local
 .pnpm-store/
+
+# Local migration data (Supabase export — contains photos, keep out of git)
+migration/
 .env
 .env.*
 !.env.example

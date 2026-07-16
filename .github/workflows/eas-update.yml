@@ -38,8 +38,8 @@ jobs:
         working-directory: apps/mobile
         env:
           # Same publishable values as eas.json — baked into the JS bundle.
-          EXPO_PUBLIC_SUPABASE_URL: https://vgwmrzoffyqerbrrzbzw.supabase.co
-          EXPO_PUBLIC_SUPABASE_ANON_KEY: sb_publishable_5ROb2ZTl8lvDeCeCVsN21A_VWUdr5qG
+          EXPO_PUBLIC_BITEBOOK_API_URL: https://script.google.com/macros/s/AKfycbxNe9MUfpvO6pbkVv3uHh95zD9udKFMrf1Y1imCr9QJJa90DaN5Hhe9q_7GPxKV_9FsYA/exec
+          EXPO_PUBLIC_BITEBOOK_API_SECRET: 997732b21c9e460b8c74696e3016177cb1b2ba5fcf6fa249
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
         run: |
           eas update --channel preview --non-interactive \
