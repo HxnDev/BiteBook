@@ -1,10 +1,11 @@
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { Camera, ImagePlus, Plus, Trash2, X } from "lucide-react-native";
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Alert,
+  KeyboardAvoidingView,
   Modal,
   Pressable,
   ScrollView,
@@ -15,6 +16,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Chip } from "@/components/ui";
 import {
   CATEGORIES,
@@ -41,7 +43,7 @@ interface IngredientDraft {
 }
 
 function emptyIngredient(): IngredientDraft {
-  return { id: uid(), name: "", quantity: "", unit: "g", notes: "" };
+  return { id: uid(), name: "", quantity: "", unit: "tsp", notes: "" };
 }
 
 const parseNumber = (raw: string): number | null => {
@@ -64,6 +66,8 @@ export function RecipeForm({
 }) {
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
+  const insets = useSafeAreaInsets();
+  const stepRefs = useRef<(TextInput | null)[]>([]);
   const [title, setTitle] = useState(recipe?.title ?? "");
   const [description, setDescription] = useState(recipe?.description ?? "");
   const [category, setCategory] = useState<Category>(
@@ -131,6 +135,16 @@ export function RecipeForm({
     setSteps((prev) => prev.map((s, i) => (i === index ? value : s)));
   }
 
+  /** Enter on a step inserts the next one and moves focus into it. */
+  function addStepAfter(index: number) {
+    setSteps((prev) => {
+      const next = [...prev];
+      next.splice(index + 1, 0, "");
+      return next;
+    });
+    setTimeout(() => stepRefs.current[index + 1]?.focus(), 80);
+  }
+
   function submit() {
     if (!title.trim()) {
       Alert.alert("Missing title", "Give the recipe a name.");
@@ -167,6 +181,13 @@ export function RecipeForm({
   }
 
   return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      // Edge-to-edge Android doesn't auto-resize for the keyboard, so pad the
+      // scroll view ourselves on both platforms.
+      behavior="padding"
+      keyboardVerticalOffset={insets.top + 56}
+    >
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -248,10 +269,7 @@ export function RecipeForm({
       </Field>
 
       {/* Ingredients */}
-      <SectionHeader
-        title="Ingredients"
-        onAdd={() => setIngredients((prev) => [...prev, emptyIngredient()])}
-      />
+      <SectionHeader title="Ingredients" />
       <View style={{ gap: 10 }}>
         {ingredients.map((ing) => (
           <View key={ing.id} style={styles.ingredientRow}>
@@ -291,13 +309,14 @@ export function RecipeForm({
             </Pressable>
           </View>
         ))}
+        <AddRowButton
+          label="Add ingredient"
+          onPress={() => setIngredients((prev) => [...prev, emptyIngredient()])}
+        />
       </View>
 
       {/* Method */}
-      <SectionHeader
-        title="Method"
-        onAdd={() => setSteps((prev) => [...prev, ""])}
-      />
+      <SectionHeader title="Method" />
       <View style={{ gap: 10 }}>
         {steps.map((step, i) => (
           <View key={i} style={styles.stepRow}>
@@ -305,12 +324,18 @@ export function RecipeForm({
               <Text style={styles.stepNumber}>{i + 1}</Text>
             </View>
             <TextInput
+              ref={(el) => {
+                stepRefs.current[i] = el;
+              }}
               style={[styles.input, styles.stepInput]}
               placeholder={`Step ${i + 1}…`}
               placeholderTextColor={colors.muted}
               value={step}
               onChangeText={(text) => updateStep(i, text)}
               multiline
+              submitBehavior="submit"
+              returnKeyType="next"
+              onSubmitEditing={() => addStepAfter(i)}
             />
             <Pressable
               onPress={() =>
@@ -325,6 +350,10 @@ export function RecipeForm({
             </Pressable>
           </View>
         ))}
+        <AddRowButton
+          label="Add step"
+          onPress={() => setSteps((prev) => [...prev, ""])}
+        />
       </View>
 
       {/* Macros */}
@@ -430,20 +459,36 @@ export function RecipeForm({
         </Pressable>
       </Modal>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
-function SectionHeader({ title, onAdd }: { title: string; onAdd: () => void }) {
-  const { colors } = useTheme();
+function SectionHeader({ title }: { title: string }) {
   const styles = useThemedStyles(createStyles);
   return (
     <View style={styles.sectionHeader}>
       <Text style={styles.sectionTitle}>{title}</Text>
-      <Pressable onPress={onAdd} style={styles.addButton} hitSlop={6}>
-        <Plus size={14} color={colors.primary} strokeWidth={3} />
-        <Text style={styles.addButtonText}>Add</Text>
-      </Pressable>
     </View>
+  );
+}
+
+function AddRowButton({
+  label,
+  onPress,
+}: {
+  label: string;
+  onPress: () => void;
+}) {
+  const { colors } = useTheme();
+  const styles = useThemedStyles(createStyles);
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.addRow, pressed && { opacity: 0.7 }]}
+    >
+      <Plus size={15} color={colors.primary} strokeWidth={3} />
+      <Text style={styles.addRowText}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -540,19 +585,22 @@ const createStyles = (colors: Palette) => StyleSheet.create({
     fontFamily: font.display,
     fontSize: 20,
   },
-  addButton: {
+  addRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radius.full,
+    justifyContent: "center",
+    gap: 6,
+    paddingVertical: 12,
+    borderRadius: radius.md,
+    borderWidth: 1.5,
+    borderStyle: "dashed",
+    borderColor: colors.primaryBorder,
     backgroundColor: colors.primarySoft,
   },
-  addButtonText: {
+  addRowText: {
     color: colors.primary,
     fontFamily: font.bold,
-    fontSize: 12,
+    fontSize: 13,
   },
   ingredientRow: {
     flexDirection: "row",

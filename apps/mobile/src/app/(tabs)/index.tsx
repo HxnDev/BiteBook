@@ -249,6 +249,8 @@ export default function RecipesScreen() {
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          initialNumToRender={6}
+          windowSize={7}
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
