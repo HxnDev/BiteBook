@@ -101,7 +101,7 @@ export default function RecipeDetailScreen() {
               style={StyleSheet.absoluteFill}
               contentFit="cover"
               transition={250}
-              cachePolicy="disk"
+              cachePolicy="memory-disk"
             />
           ) : (
             <View style={[StyleSheet.absoluteFill, styles.placeholder]}>

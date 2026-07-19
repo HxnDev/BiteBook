@@ -46,7 +46,7 @@ export function RecipeCard({
           style={StyleSheet.absoluteFill}
           contentFit="cover"
           transition={200}
-          cachePolicy="disk"
+          cachePolicy="memory-disk"
         />
       ) : (
         <View style={[StyleSheet.absoluteFill, styles.placeholder]}>
