@@ -17,6 +17,7 @@ import * as FileSystem from "expo-file-system/legacy";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
+import * as Updates from "expo-updates";
 import { useEffect } from "react";
 import { font } from "@/lib/theme";
 import { ThemeProvider, useTheme } from "@/lib/theme-context";
@@ -61,6 +62,28 @@ const persister = createAsyncStoragePersister({
   throttleTime: 2_000,
 });
 
+/**
+ * OTA updates: on cold start, fetch and apply any pending update published
+ * with `eas update`. A no-op in dev mode / the dev client, and errors are
+ * swallowed so an offline launch is unaffected.
+ */
+function useOtaUpdateOnLaunch() {
+  useEffect(() => {
+    if (__DEV__ || !Updates.isEnabled) return;
+    (async () => {
+      try {
+        const update = await Updates.checkForUpdateAsync();
+        if (update.isAvailable) {
+          await Updates.fetchUpdateAsync();
+          await Updates.reloadAsync();
+        }
+      } catch {
+        // Offline or update server unreachable — keep the installed bundle.
+      }
+    })();
+  }, []);
+}
+
 function ThemedApp() {
   const { colors, scheme } = useTheme();
   return (
@@ -91,6 +114,8 @@ function ThemedApp() {
 }
 
 export default function RootLayout() {
+  useOtaUpdateOnLaunch();
+
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
