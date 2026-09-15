@@ -13,7 +13,10 @@ import type { Recipe, RecipeInput } from "@/lib/recipes/types";
 
 const numStr = z
   .string()
-  .refine((v) => v.trim() === "" || !Number.isNaN(Number(v)), "Must be a number");
+  .refine(
+    (v) => v.trim() === "" || !Number.isNaN(Number(v)),
+    "Must be a number",
+  );
 
 const schema = z.object({
   title: z.string().min(1, "Give it a name"),
@@ -25,6 +28,7 @@ const schema = z.object({
     z.object({
       id: z.string(),
       name: z.string(),
+      imageUrl: z.string().nullable(),
       quantity: numStr,
       unit: z.enum(UNITS),
       notes: z.string(),
@@ -54,18 +58,26 @@ function recipeToForm(r?: Recipe): FormValues {
     category: r?.category ?? "Desi",
     tagsText: r?.tags.join(", ") ?? "",
     imageUrl: r?.imageUrl ?? null,
-    ingredients:
-      r?.ingredients.map((i) => ({
-        id: i.id,
-        name: i.name,
-        quantity: i.quantity?.toString() ?? "",
-        unit: i.unit,
-        notes: i.notes,
-      })) ?? [
-        { id: crypto.randomUUID(), name: "", quantity: "", unit: "g", notes: "" },
-      ],
-    instructions:
-      r?.instructions.map((value) => ({ value })) ?? [{ value: "" }],
+    ingredients: r?.ingredients.map((i) => ({
+      id: i.id,
+      name: i.name,
+      imageUrl: i.imageUrl ?? null,
+      quantity: i.quantity?.toString() ?? "",
+      unit: i.unit,
+      notes: i.notes,
+    })) ?? [
+      {
+        id: crypto.randomUUID(),
+        name: "",
+        imageUrl: null,
+        quantity: "",
+        unit: "g",
+        notes: "",
+      },
+    ],
+    instructions: r?.instructions.map((value) => ({ value })) ?? [
+      { value: "" },
+    ],
     notes: r?.notes ?? "",
     calories: r?.calories?.toString() ?? "",
     protein: r?.protein?.toString() ?? "",
@@ -89,6 +101,7 @@ function formToInput(v: FormValues): RecipeInput {
       .map((i) => ({
         id: i.id,
         name: i.name.trim(),
+        imageUrl: i.imageUrl,
         quantity: num(i.quantity),
         unit: i.unit,
         notes: i.notes,
@@ -105,8 +118,7 @@ function formToInput(v: FormValues): RecipeInput {
   };
 }
 
-const sectionCls =
-  "rounded-2xl border border-border/60 bg-card/30 p-6 md:p-8";
+const sectionCls = "rounded-2xl border border-border/60 bg-card/30 p-6 md:p-8";
 
 export function RecipeForm({
   initial,
@@ -200,6 +212,7 @@ export function RecipeForm({
                 ingredients.append({
                   id: crypto.randomUUID(),
                   name: "",
+                  imageUrl: null,
                   quantity: "",
                   unit: "g",
                   notes: "",
@@ -313,7 +326,11 @@ export function RecipeForm({
             </div>
             <div>
               <Label htmlFor="protein">Protein (g)</Label>
-              <Input id="protein" inputMode="decimal" {...register("protein")} />
+              <Input
+                id="protein"
+                inputMode="decimal"
+                {...register("protein")}
+              />
             </div>
             <div>
               <Label htmlFor="carbs">Carbs (g)</Label>
@@ -326,7 +343,12 @@ export function RecipeForm({
           </div>
         </section>
 
-        <Button type="submit" size="lg" disabled={submitting} className="w-full">
+        <Button
+          type="submit"
+          size="lg"
+          disabled={submitting}
+          className="w-full"
+        >
           {submitting && <Loader2 className="size-4 animate-spin" />}
           {initial ? "Save changes" : "Save recipe"}
         </Button>

@@ -116,6 +116,29 @@ async function inputToApi(input: RecipeInput) {
   const { image_url, imageBase64, imageContentType } = await imageFields(
     input.imageUrl,
   );
+  const ingredientImages: {
+    id: string;
+    base64: string;
+    contentType: string;
+  }[] = [];
+  const ingredients = await Promise.all(
+    input.ingredients.map(async (ingredient) => {
+      if (!ingredient.imageUrl?.startsWith("file:")) return ingredient;
+      const manipulated = await manipulateAsync(
+        ingredient.imageUrl,
+        [{ resize: { width: 256 } }],
+        { compress: 0.78, format: SaveFormat.JPEG },
+      );
+      ingredientImages.push({
+        id: ingredient.id,
+        base64: await FileSystem.readAsStringAsync(manipulated.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        }),
+        contentType: "image/jpeg",
+      });
+      return { ...ingredient, imageUrl: null };
+    }),
+  );
   return {
     input: {
       title: input.title,
@@ -123,7 +146,7 @@ async function inputToApi(input: RecipeInput) {
       category: input.category,
       tags: input.tags,
       image_url,
-      ingredients: input.ingredients,
+      ingredients,
       instructions: input.instructions,
       notes: input.notes,
       calories: input.calories,
@@ -134,6 +157,7 @@ async function inputToApi(input: RecipeInput) {
     },
     imageBase64,
     imageContentType,
+    ingredientImages,
   };
 }
 

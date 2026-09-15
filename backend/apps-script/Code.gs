@@ -18,8 +18,8 @@
  *   GET  ?action=list                       → all recipes
  *   GET  ?action=get&id=<uuid>              → one recipe or null
  *   POST body: { secret, action, ... }      → writes:
- *     { action: "create", input, imageBase64?, imageContentType? }
- *     { action: "update", id, input, imageBase64?, imageContentType? }
+ *     { action: "create", input, imageBase64?, imageContentType?, ingredientImages? }
+ *     { action: "update", id, input, imageBase64?, imageContentType?, ingredientImages? }
  *     { action: "patch",  id, patch }
  *     { action: "delete", ids: [...] }
  *     { action: "import", recipe, imageBase64?, imageContentType? }  // migration, upserts by id
@@ -74,9 +74,9 @@ function doPost(e) {
 
     switch (body.action) {
       case "create":
-        return json_(createRecipe_(body.input, body.imageBase64, body.imageContentType));
+        return json_(createRecipe_(body.input, body.imageBase64, body.imageContentType, body.ingredientImages));
       case "update":
-        return json_(updateRecipe_(body.id, body.input, body.imageBase64, body.imageContentType));
+        return json_(updateRecipe_(body.id, body.input, body.imageBase64, body.imageContentType, body.ingredientImages));
       case "patch":
         return json_(patchRecipe_(body.id, body.patch));
       case "delete":
@@ -112,7 +112,7 @@ function getRecipe_(id) {
   return found ? rowToRecipe_(found.values) : null;
 }
 
-function createRecipe_(input, imageBase64, contentType) {
+function createRecipe_(input, imageBase64, contentType, ingredientImages) {
   var now = new Date().toISOString();
   var recipe = {
     id: Utilities.getUuid(),
@@ -125,12 +125,13 @@ function createRecipe_(input, imageBase64, contentType) {
   recipe.image_url = imageBase64
     ? uploadImage_(recipe.id, imageBase64, contentType)
     : input.image_url || null;
+  recipe.ingredients = uploadIngredientImages_(recipe.id, recipe.ingredients, ingredientImages);
 
   getSheet_().appendRow(recipeToRow_(recipe));
   return recipe;
 }
 
-function updateRecipe_(id, input, imageBase64, contentType) {
+function updateRecipe_(id, input, imageBase64, contentType, ingredientImages) {
   var found = findRow_(id);
   if (!found) throw new Error("Recipe not found: " + id);
   var recipe = rowToRecipe_(found.values);
@@ -141,6 +142,7 @@ function updateRecipe_(id, input, imageBase64, contentType) {
   } else if ("image_url" in input) {
     recipe.image_url = input.image_url;
   }
+  recipe.ingredients = uploadIngredientImages_(id, recipe.ingredients, ingredientImages);
   recipe.updated_at = new Date().toISOString();
 
   writeRow_(found.rowIndex, recipe);
@@ -205,6 +207,20 @@ function uploadImage_(recipeId, base64, contentType) {
   file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
   // lh3 serves link-shared Drive images with CDN caching; works in <img> tags.
   return "https://lh3.googleusercontent.com/d/" + file.getId();
+}
+
+/** Uploads newly selected ingredient thumbnails and merges their Drive URLs. */
+function uploadIngredientImages_(recipeId, ingredients, images) {
+  if (!images || !images.length) return ingredients || [];
+  var urls = {};
+  images.forEach(function (image) {
+    urls[image.id] = uploadImage_(recipeId + "-ingredient-" + image.id, image.base64, image.contentType);
+  });
+  return (ingredients || []).map(function (ingredient) {
+    return urls[ingredient.id]
+      ? Object.assign({}, ingredient, { imageUrl: urls[ingredient.id] })
+      : ingredient;
+  });
 }
 
 // ---------------------------------------------------------------------------

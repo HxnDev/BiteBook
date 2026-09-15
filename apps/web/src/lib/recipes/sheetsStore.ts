@@ -8,8 +8,7 @@ import type { Ingredient, Recipe, RecipeInput } from "./types";
 
 const API_URL = import.meta.env.VITE_BITEBOOK_API_URL as string | undefined;
 const API_SECRET = import.meta.env.VITE_BITEBOOK_API_SECRET as
-  | string
-  | undefined;
+  string | undefined;
 
 export const isApiConfigured = Boolean(API_URL && API_SECRET);
 
@@ -104,9 +103,31 @@ function imageFields(imageUrl: string | null): {
   return { imageBase64: base64, imageContentType: contentType };
 }
 
+function ingredientImageFields(ingredients: Ingredient[]) {
+  const ingredientImages: {
+    id: string;
+    base64: string;
+    contentType: string;
+  }[] = [];
+  const cleaned = ingredients.map((ingredient) => {
+    const image = imageFields(ingredient.imageUrl ?? null);
+    if (!image.imageBase64) return ingredient;
+    ingredientImages.push({
+      id: ingredient.id,
+      base64: image.imageBase64,
+      contentType: image.imageContentType ?? "image/jpeg",
+    });
+    return { ...ingredient, imageUrl: null };
+  });
+  return { ingredients: cleaned, ingredientImages };
+}
+
 function inputToApi(input: RecipeInput) {
   const { image_url, imageBase64, imageContentType } = imageFields(
     input.imageUrl,
+  );
+  const { ingredients, ingredientImages } = ingredientImageFields(
+    input.ingredients,
   );
   return {
     input: {
@@ -115,7 +136,7 @@ function inputToApi(input: RecipeInput) {
       category: input.category,
       tags: input.tags,
       image_url,
-      ingredients: input.ingredients,
+      ingredients,
       instructions: input.instructions,
       notes: input.notes,
       calories: input.calories,
@@ -126,6 +147,7 @@ function inputToApi(input: RecipeInput) {
     },
     imageBase64,
     imageContentType,
+    ingredientImages,
   };
 }
 
@@ -140,7 +162,10 @@ export async function getRecipe(id: string): Promise<Recipe | undefined> {
 }
 
 export async function createRecipe(input: RecipeInput): Promise<Recipe> {
-  const row = (await apiPost({ action: "create", ...inputToApi(input) })) as Row;
+  const row = (await apiPost({
+    action: "create",
+    ...inputToApi(input),
+  })) as Row;
   return rowToRecipe(row);
 }
 

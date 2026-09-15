@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 import { Card } from "@/components/ui";
 import type { Ingredient } from "@/lib/recipes/types";
@@ -15,9 +16,18 @@ export function IngredientList({ ingredients }: { ingredients: Ingredient[] }) {
           <View key={ing.id} style={[styles.row, i > 0 && styles.rowBorder]}>
             <View style={styles.ingredientName}>
               <View style={styles.ingredientIcon}>
-                <Text style={styles.ingredientEmoji}>
-                  {ingredientEmoji(ing.name)}
-                </Text>
+                {ing.imageUrl ? (
+                  <Image
+                    source={{ uri: ing.imageUrl }}
+                    style={styles.ingredientImage}
+                    contentFit="cover"
+                    cachePolicy="memory-disk"
+                  />
+                ) : (
+                  <Text style={styles.ingredientEmoji}>
+                    {ingredientEmoji(ing.name)}
+                  </Text>
+                )}
               </View>
               <Text style={styles.name}>{ing.name}</Text>
             </View>
@@ -85,7 +95,9 @@ const createStyles = (colors: Palette) =>
       alignItems: "center",
       justifyContent: "center",
       backgroundColor: colors.faint,
+      overflow: "hidden",
     },
+    ingredientImage: { width: "100%", height: "100%" },
     ingredientEmoji: { fontSize: 20 },
     qty: {
       color: colors.muted,

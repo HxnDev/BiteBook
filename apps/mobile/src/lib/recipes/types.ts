@@ -34,6 +34,8 @@ export type Unit = (typeof UNITS)[number];
 export interface Ingredient {
   id: string;
   name: string;
+  /** Optional custom thumbnail. Built-in food icons remain the fallback. */
+  imageUrl?: string | null;
   /** Display quantity, e.g. 2 (onions) or 500 (g). Optional. */
   quantity: number | null;
   unit: Unit;
