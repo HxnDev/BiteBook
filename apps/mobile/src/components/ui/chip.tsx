@@ -36,6 +36,8 @@ export function Chip({
 const createStyles = (colors: Palette) =>
   StyleSheet.create({
     chip: {
+      flexShrink: 0,
+      minHeight: 40,
       flexDirection: "row",
       alignItems: "center",
       gap: 6,
@@ -51,6 +53,7 @@ const createStyles = (colors: Palette) =>
       borderColor: colors.primaryBorder,
     },
     label: {
+      flexShrink: 0,
       color: colors.muted,
       fontFamily: font.semibold,
       fontSize: 13,

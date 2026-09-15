@@ -207,6 +207,7 @@ export default function RecipesScreen() {
       </View>
       <ScrollView
         horizontal
+        style={styles.categoryScroll}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.chipRow}
       >
@@ -237,6 +238,7 @@ export default function RecipesScreen() {
         <Animated.View entering={FadeIn.duration(180)} style={styles.sortStrip}>
           <ScrollView
             horizontal
+            style={styles.categoryScroll}
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chipRow}
           >
@@ -467,6 +469,7 @@ const createStyles = (colors: Palette) =>
       paddingVertical: 14,
     },
     chipRow: { gap: 8, paddingBottom: 10, alignItems: "center" },
+    categoryScroll: { flexGrow: 0, flexShrink: 0, minHeight: 50 },
     filterButton: {
       width: 42,
       height: 42,
