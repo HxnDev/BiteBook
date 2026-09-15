@@ -5,7 +5,12 @@ import { Plus } from "lucide-react";
 /** Global floating "add recipe" button, hidden on the form itself. */
 export function FloatingAddButton() {
   const { pathname } = useLocation();
-  if (pathname === "/recipes/new" || pathname.endsWith("/edit")) return null;
+  if (
+    pathname === "/recipes" ||
+    pathname === "/recipes/new" ||
+    pathname.endsWith("/edit")
+  )
+    return null;
 
   return (
     <motion.div

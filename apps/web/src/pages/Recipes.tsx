@@ -6,6 +6,7 @@ import {
   Plus,
   Search,
   LayoutGrid,
+  List,
   CalendarDays,
   CheckSquare,
   Trash2,
@@ -17,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { useDeleteRecipes, useRecipes } from "@/hooks/recipes";
+import { useDeleteRecipes, useRecipes, useUpdateRecipe } from "@/hooks/recipes";
 import { per100g } from "@/lib/recipes/macros";
 import { CATEGORIES } from "@/lib/recipes/types";
 import type { Category, Recipe } from "@/lib/recipes/types";
@@ -44,10 +45,12 @@ function monthLabel(iso: string) {
 export default function Recipes() {
   const { data: recipes, isLoading } = useRecipes();
   const deleteRecipes = useDeleteRecipes();
+  const updateRecipe = useUpdateRecipe();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<Category | "All">("All");
   const [sort, setSort] = useState<Sort>("newest");
   const [byMonth, setByMonth] = useState(false);
+  const [layout, setLayout] = useState<"grid" | "list">("grid");
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -74,7 +77,10 @@ export default function Recipes() {
         case "protein":
           return (per100g(b)?.protein ?? -1) - (per100g(a)?.protein ?? -1);
         case "calories":
-          return (per100g(a)?.calories ?? Infinity) - (per100g(b)?.calories ?? Infinity);
+          return (
+            (per100g(a)?.calories ?? Infinity) -
+            (per100g(b)?.calories ?? Infinity)
+          );
         default:
           return a.createdAt < b.createdAt ? 1 : -1;
       }
@@ -129,6 +135,13 @@ export default function Recipes() {
     exitSelectMode();
   }
 
+  function toggleFavorite(recipe: Recipe) {
+    updateRecipe.mutate({
+      id: recipe.id,
+      input: { ...recipe, isFavorite: !recipe.isFavorite },
+    });
+  }
+
   // Leaving select mode (or no recipes) clears any stale selection.
   useEffect(() => {
     if (!selectMode && selected.size > 0) setSelected(new Set());
@@ -137,18 +150,32 @@ export default function Recipes() {
   return (
     <Page>
       <div className="container py-28 md:py-32">
-        <div className="mb-10">
-          <p className="mb-3 text-xs uppercase tracking-[0.3em] text-primary">
-            The book
-          </p>
-          <h1 className="font-display text-[clamp(2.4rem,6vw,4.5rem)] font-light leading-none">
-            Your recipes
-          </h1>
+        <div className="mb-5 flex items-start justify-between gap-6">
+          <div>
+            <p className="mb-3 text-xs uppercase tracking-[0.3em] text-primary">
+              The book
+            </p>
+            <h1 className="font-display text-[clamp(2.4rem,6vw,4.5rem)] font-light leading-none">
+              Your recipes
+            </h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Good food. A better you.
+            </p>
+          </div>
+          <Link
+            to="/recipes/new"
+            className={cn(
+              buttonVariants({ size: "md" }),
+              "mt-1 hidden gap-2 rounded-xl md:inline-flex",
+            )}
+          >
+            <Plus className="size-4" /> Add Recipe
+          </Link>
         </div>
 
         {/* Controls */}
-        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="relative w-full lg:max-w-sm">
+        <div className="mb-4 flex flex-col gap-4 lg:flex-row lg:items-center">
+          <div className="relative w-full lg:flex-1">
             <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               value={query}
@@ -170,6 +197,30 @@ export default function Recipes() {
               ))}
             </Select>
             <button
+              onClick={() => setLayout("grid")}
+              className={cn(
+                "grid size-11 place-items-center rounded-xl border transition-colors",
+                layout === "grid"
+                  ? "border-primary bg-primary/15 text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground",
+              )}
+              aria-label="Grid view"
+            >
+              <LayoutGrid className="size-4" />
+            </button>
+            <button
+              onClick={() => setLayout("list")}
+              className={cn(
+                "grid size-11 place-items-center rounded-xl border transition-colors",
+                layout === "list"
+                  ? "border-primary bg-primary/15 text-primary"
+                  : "border-border text-muted-foreground hover:text-foreground",
+              )}
+              aria-label="List view"
+            >
+              <List className="size-4" />
+            </button>
+            <button
               onClick={() => setByMonth((v) => !v)}
               className={cn(
                 "grid size-11 place-items-center rounded-xl border transition-colors",
@@ -178,13 +229,9 @@ export default function Recipes() {
                   : "border-border text-muted-foreground hover:text-foreground",
               )}
               aria-label="Toggle month grouping"
-              title={byMonth ? "Grid view" : "Group by month"}
+              title={byMonth ? "Stop grouping by month" : "Group by month"}
             >
-              {byMonth ? (
-                <LayoutGrid className="size-4" />
-              ) : (
-                <CalendarDays className="size-4" />
-              )}
+              <CalendarDays className="size-4" />
             </button>
             <button
               onClick={() =>
@@ -223,7 +270,7 @@ export default function Recipes() {
         )}
 
         {/* Category chips */}
-        <div className="no-scrollbar mb-10 flex gap-2 overflow-x-auto pb-1">
+        <div className="no-scrollbar mb-8 flex items-center gap-2 overflow-x-auto pb-1">
           <Chip
             label="All"
             active={category === "All"}
@@ -237,6 +284,9 @@ export default function Recipes() {
               onClick={() => setCategory(c)}
             />
           ))}
+          <span className="ml-auto hidden shrink-0 text-sm text-muted-foreground md:block">
+            {filtered.length} recipes
+          </span>
         </div>
 
         {/* Content */}
@@ -255,9 +305,11 @@ export default function Recipes() {
                 </h2>
                 <Grid
                   recipes={items}
+                  layout={layout}
                   selectable={selectMode}
                   selected={selected}
                   onToggleSelect={toggleSelect}
+                  onToggleFavorite={toggleFavorite}
                 />
               </div>
             ))}
@@ -265,9 +317,11 @@ export default function Recipes() {
         ) : (
           <Grid
             recipes={filtered}
+            layout={layout}
             selectable={selectMode}
             selected={selected}
             onToggleSelect={toggleSelect}
+            onToggleFavorite={toggleFavorite}
           />
         )}
       </div>
@@ -289,11 +343,7 @@ export default function Recipes() {
                 </span>{" "}
                 selected
               </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={exitSelectMode}
-              >
+              <Button variant="ghost" size="sm" onClick={exitSelectMode}>
                 Cancel
               </Button>
               <Button
@@ -323,29 +373,38 @@ export default function Recipes() {
 
 function Grid({
   recipes,
+  layout,
   selectable,
   selected,
   onToggleSelect,
+  onToggleFavorite,
 }: {
   recipes: Recipe[];
+  layout: "grid" | "list";
   selectable: boolean;
   selected: Set<string>;
   onToggleSelect: (id: string) => void;
+  onToggleFavorite: (recipe: Recipe) => void;
 }) {
   return (
     <motion.div
       variants={stagger(0.06)}
       initial="hidden"
       animate="show"
-      className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3"
+      className={cn(
+        "grid gap-5",
+        layout === "grid" ? "sm:grid-cols-2 lg:grid-cols-4" : "grid-cols-1",
+      )}
     >
       {recipes.map((r) => (
         <RecipeCard
           key={r.id}
           recipe={r}
+          layout={layout}
           selectable={selectable}
           selected={selected.has(r.id)}
           onToggleSelect={onToggleSelect}
+          onToggleFavorite={onToggleFavorite}
         />
       ))}
     </motion.div>

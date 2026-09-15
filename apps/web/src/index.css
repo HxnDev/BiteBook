@@ -4,54 +4,54 @@
 
 @layer base {
   :root {
-    /* Crisp white + orange */
-    --background: 30 100% 99%;
-    --foreground: 24 32% 12%;
+    /* Warm parchment, ink, and muted gold */
+    --background: 45 33% 97%;
+    --foreground: 145 14% 11%;
 
     --card: 0 0% 100%;
     --card-foreground: 24 32% 12%;
 
-    --primary: 24 90% 52%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 39 64% 56%;
+    --primary-foreground: 120 10% 8%;
 
-    --secondary: 28 70% 94%;
-    --secondary-foreground: 24 32% 14%;
+    --secondary: 42 23% 91%;
+    --secondary-foreground: 145 14% 12%;
 
-    --muted: 28 50% 94%;
-    --muted-foreground: 25 14% 40%;
+    --muted: 42 16% 90%;
+    --muted-foreground: 145 7% 39%;
 
     --accent: 14 78% 50%;
     --accent-foreground: 0 0% 100%;
 
-    --border: 28 40% 88%;
-    --input: 28 40% 88%;
-    --ring: 24 90% 52%;
+    --border: 42 12% 82%;
+    --input: 42 12% 82%;
+    --ring: 39 64% 56%;
 
     --radius: 0.9rem;
   }
 
   .dark {
-    --background: 22 30% 5%;
-    --foreground: 37 42% 92%;
+    --background: 145 19% 5%;
+    --foreground: 39 31% 94%;
 
-    --card: 22 22% 8%;
-    --card-foreground: 37 42% 92%;
+    --card: 145 16% 9%;
+    --card-foreground: 39 31% 94%;
 
-    --primary: 34 85% 60%;
-    --primary-foreground: 22 40% 8%;
+    --primary: 39 78% 70%;
+    --primary-foreground: 120 10% 8%;
 
-    --secondary: 20 16% 15%;
-    --secondary-foreground: 37 42% 92%;
+    --secondary: 145 10% 14%;
+    --secondary-foreground: 39 31% 94%;
 
-    --muted: 24 14% 14%;
-    --muted-foreground: 34 16% 64%;
+    --muted: 145 9% 14%;
+    --muted-foreground: 145 5% 65%;
 
     --accent: 14 65% 54%;
     --accent-foreground: 40 60% 97%;
 
-    --border: 28 16% 16%;
-    --input: 28 16% 18%;
-    --ring: 34 85% 60%;
+    --border: 145 9% 19%;
+    --input: 145 9% 19%;
+    --ring: 39 78% 70%;
   }
 }
 
@@ -68,6 +68,11 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "ss01", "cv01";
+    background-image: radial-gradient(
+      circle at 52% 0%,
+      hsl(var(--primary) / 0.035),
+      transparent 42%
+    );
   }
 
   ::selection {

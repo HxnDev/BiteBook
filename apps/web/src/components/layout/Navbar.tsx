@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Search, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/hooks/useTheme";
 
@@ -30,7 +30,7 @@ export function Navbar() {
     >
       <nav
         className={cn(
-          "flex w-full max-w-5xl items-center justify-between rounded-full border px-3 py-2 transition-all duration-500",
+          "flex w-full max-w-7xl items-center justify-between rounded-full border px-3 py-2 transition-all duration-500",
           scrolled
             ? "glass border-border/70 shadow-lg shadow-black/20"
             : "border-transparent bg-transparent",
@@ -65,7 +65,11 @@ export function Navbar() {
                     <motion.span
                       layoutId="nav-pill"
                       className="absolute inset-0 -z-10 rounded-full bg-secondary"
-                      transition={{ type: "spring", stiffness: 380, damping: 32 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 380,
+                        damping: 32,
+                      }}
                     />
                   )}
                   {l.label}
@@ -76,6 +80,13 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Link
+            to="/recipes"
+            aria-label="Search recipes"
+            className="grid size-9 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          >
+            <Search className="size-4" />
+          </Link>
           <button
             onClick={toggle}
             aria-label="Toggle theme"
@@ -87,6 +98,12 @@ export function Navbar() {
               <Moon className="size-4" />
             )}
           </button>
+          <span
+            className="grid size-9 place-items-center rounded-full border border-border text-xs text-muted-foreground"
+            aria-label="Signed in as HS"
+          >
+            HS
+          </span>
         </div>
       </nav>
     </motion.header>
