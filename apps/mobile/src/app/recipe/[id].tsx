@@ -5,13 +5,18 @@ import {
   ArrowLeft,
   CookingPot,
   Copy,
+  Flame,
+  Heart,
+  MoreHorizontal,
   Pencil,
+  Share2,
   Trash2,
 } from "lucide-react-native";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Alert,
   Pressable,
+  Share,
   ScrollView,
   StyleSheet,
   Text,
@@ -28,8 +33,9 @@ import {
   useDeleteRecipes,
   useDuplicateRecipe,
   useRecipe,
+  useUpdateRecipe,
 } from "@/hooks/use-recipes";
-import { per100g } from "@/lib/recipes/macros";
+import { fmt, per100g } from "@/lib/recipes/macros";
 import { font, radius, type Palette } from "@/lib/theme";
 import { useTheme, useThemedStyles } from "@/lib/theme-context";
 
@@ -43,6 +49,10 @@ export default function RecipeDetailScreen() {
 
   const duplicate = useDuplicateRecipe();
   const remove = useDeleteRecipes();
+  const updateRecipe = useUpdateRecipe();
+  const [section, setSection] = useState<
+    "ingredients" | "instructions" | "nutrition" | "notes"
+  >("ingredients");
 
   if (isLoading || !recipe) {
     return (
@@ -60,6 +70,20 @@ export default function RecipeDetailScreen() {
   }
 
   const macros = per100g(recipe);
+
+  function toggleFavorite() {
+    updateRecipe.mutate({
+      id: recipe!.id,
+      input: { ...recipe!, isFavorite: !recipe!.isFavorite },
+    });
+  }
+
+  function shareRecipe() {
+    void Share.share({
+      title: recipe!.title,
+      message: `${recipe!.title}\n\n${recipe!.description || "A recipe from BiteBook."}`,
+    });
+  }
 
   function confirmDelete() {
     Alert.alert(
@@ -88,6 +112,22 @@ export default function RecipeDetailScreen() {
       >
         <ArrowLeft size={20} color="#F3EDE2" />
       </Pressable>
+      <View style={[styles.heroActions, { top: insets.top + 8 }]}>
+        <Pressable
+          onPress={toggleFavorite}
+          style={styles.heroButton}
+          hitSlop={8}
+        >
+          <Heart
+            size={21}
+            color="#FFFFFF"
+            fill={recipe.isFavorite ? "#FFFFFF" : "transparent"}
+          />
+        </Pressable>
+        <Pressable onPress={shareRecipe} style={styles.heroButton} hitSlop={8}>
+          <MoreHorizontal size={22} color="#FFFFFF" />
+        </Pressable>
+      </View>
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
@@ -152,6 +192,17 @@ export default function RecipeDetailScreen() {
                 {recipe.description}
               </Animated.Text>
             ) : null}
+            {macros?.calories != null && (
+              <Animated.View
+                entering={FadeInDown.duration(450).delay(140)}
+                style={styles.heroMeta}
+              >
+                <Flame size={18} color={colors.primary} />
+                <Text style={styles.heroMetaText}>
+                  {fmt(macros.calories)} kcal per 100g
+                </Text>
+              </Animated.View>
+            )}
           </View>
         </View>
 
@@ -185,40 +236,111 @@ export default function RecipeDetailScreen() {
               label="Duplicate"
             />
             <ActionButton
+              onPress={shareRecipe}
+              icon={<Share2 size={18} color={colors.muted} />}
+              label="Share"
+            />
+            <ActionButton
               onPress={confirmDelete}
               icon={<Trash2 size={18} color={colors.destructive} />}
               label="Delete"
             />
           </Animated.View>
 
-          {macros && (
-            <Animated.View entering={FadeInDown.duration(450).delay(220)}>
-              <MacroGrid macros={macros} />
-            </Animated.View>
-          )}
-
           <Animated.View
             entering={FadeInDown.duration(450).delay(280)}
             style={{ gap: 16 }}
           >
-            <SectionTitle>Ingredients</SectionTitle>
-            <IngredientList ingredients={recipe.ingredients} />
-
-            <SectionTitle>Method</SectionTitle>
-            <MethodList steps={recipe.instructions} />
-
-            {recipe.notes ? (
+            <View style={styles.tabs}>
+              <SectionTab
+                label="Ingredients"
+                active={section === "ingredients"}
+                onPress={() => setSection("ingredients")}
+              />
+              <SectionTab
+                label="Instructions"
+                active={section === "instructions"}
+                onPress={() => setSection("instructions")}
+              />
+              <SectionTab
+                label="Nutrition"
+                active={section === "nutrition"}
+                onPress={() => setSection("nutrition")}
+              />
+              <SectionTab
+                label="Notes"
+                active={section === "notes"}
+                onPress={() => setSection("notes")}
+              />
+            </View>
+            {section === "ingredients" && (
+              <>
+                <SectionTitle>Ingredients</SectionTitle>
+                <IngredientList ingredients={recipe.ingredients} />
+              </>
+            )}
+            {section === "instructions" && (
+              <>
+                <SectionTitle>Instructions</SectionTitle>
+                <MethodList steps={recipe.instructions} />
+              </>
+            )}
+            {section === "nutrition" &&
+              (macros ? (
+                <MacroGrid macros={macros} />
+              ) : (
+                <Card>
+                  <Text style={styles.notes}>
+                    No nutrition information yet.
+                  </Text>
+                </Card>
+              ))}
+            {section === "notes" && (
               <>
                 <SectionTitle>Notes</SectionTitle>
                 <Card>
-                  <Text style={styles.notes}>{recipe.notes}</Text>
+                  <Text style={styles.notes}>
+                    {recipe.notes || "No notes yet."}
+                  </Text>
                 </Card>
               </>
-            ) : null}
+            )}
+            <Pressable
+              onPress={() => setSection("instructions")}
+              style={({ pressed }) => [
+                styles.cookButton,
+                pressed && { opacity: 0.9 },
+              ]}
+            >
+              <CookingPot size={20} color={colors.onPrimary} />
+              <Text style={styles.cookButtonText}>Start Cooking</Text>
+            </Pressable>
           </Animated.View>
         </View>
       </ScrollView>
     </View>
+  );
+}
+
+function SectionTab({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  const styles = useThemedStyles(createStyles);
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.tab, active && styles.tabActive]}
+    >
+      <Text style={[styles.tabText, active && styles.tabTextActive]}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -246,102 +368,159 @@ function ActionButton({
   );
 }
 
-const createStyles = (colors: Palette) => StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  missing: {
-    color: colors.muted,
-    fontFamily: font.regular,
-    fontSize: 15,
-    textAlign: "center",
-    marginTop: 64,
-    paddingHorizontal: 32,
-  },
-  // Floats over the photo — dark scrim with light icon in both themes.
-  backButton: {
-    position: "absolute",
-    left: 16,
-    zIndex: 10,
-    width: 40,
-    height: 40,
-    borderRadius: radius.full,
-    backgroundColor: "rgba(17,12,9,0.55)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  hero: {
-    height: 340,
-    justifyContent: "flex-end",
-  },
-  placeholder: {
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: colors.cardElevated,
-  },
-  heroBody: {
-    padding: 20,
-    gap: 10,
-  },
-  tagRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 6,
-  },
-  // Tags sit over the photo, so they keep a dark scrim in both themes.
-  tag: {
-    borderWidth: 1,
-    borderColor: "rgba(243,237,226,0.3)",
-    borderRadius: radius.full,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    backgroundColor: "rgba(17,12,9,0.45)",
-  },
-  tagText: {
-    color: "#E8DFD2",
-    fontFamily: font.medium,
-    fontSize: 11,
-  },
-  title: {
-    color: colors.text,
-    fontFamily: font.displayLight,
-    fontSize: 34,
-    lineHeight: 38,
-  },
-  description: {
-    color: colors.textSecondary,
-    fontFamily: font.regular,
-    fontSize: 14,
-    lineHeight: 21,
-  },
-  content: {
-    padding: 20,
-    gap: 16,
-  },
-  actions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  action: {
-    flex: 1,
-    alignItems: "center",
-    gap: 6,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingVertical: 12,
-    backgroundColor: colors.card,
-  },
-  actionLabel: {
-    color: colors.muted,
-    fontFamily: font.semibold,
-    fontSize: 11,
-  },
-  notes: {
-    color: colors.textSecondary,
-    fontFamily: font.regular,
-    fontSize: 14,
-    lineHeight: 22,
-  },
-});
+const createStyles = (colors: Palette) =>
+  StyleSheet.create({
+    screen: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    missing: {
+      color: colors.muted,
+      fontFamily: font.regular,
+      fontSize: 15,
+      textAlign: "center",
+      marginTop: 64,
+      paddingHorizontal: 32,
+    },
+    // Floats over the photo — dark scrim with light icon in both themes.
+    backButton: {
+      position: "absolute",
+      left: 16,
+      zIndex: 10,
+      width: 40,
+      height: 40,
+      borderRadius: radius.full,
+      backgroundColor: "rgba(17,12,9,0.55)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    heroActions: {
+      position: "absolute",
+      right: 16,
+      zIndex: 10,
+      flexDirection: "row",
+      gap: 10,
+    },
+    heroButton: {
+      width: 40,
+      height: 40,
+      borderRadius: radius.full,
+      backgroundColor: "rgba(11,16,14,0.58)",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    hero: {
+      height: 430,
+      justifyContent: "flex-end",
+    },
+    placeholder: {
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.cardElevated,
+    },
+    heroBody: {
+      padding: 20,
+      gap: 10,
+    },
+    tagRow: {
+      flexDirection: "row",
+      flexWrap: "wrap",
+      gap: 6,
+    },
+    // Tags sit over the photo, so they keep a dark scrim in both themes.
+    tag: {
+      borderWidth: 1,
+      borderColor: "rgba(243,237,226,0.3)",
+      borderRadius: radius.full,
+      paddingHorizontal: 10,
+      paddingVertical: 3,
+      backgroundColor: "rgba(17,12,9,0.45)",
+    },
+    tagText: {
+      color: "#E8DFD2",
+      fontFamily: font.medium,
+      fontSize: 11,
+    },
+    title: {
+      color: colors.text,
+      fontFamily: font.displayLight,
+      fontSize: 38,
+      lineHeight: 43,
+    },
+    description: {
+      color: colors.textSecondary,
+      fontFamily: font.regular,
+      fontSize: 16,
+      lineHeight: 23,
+    },
+    heroMeta: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+      marginTop: 4,
+    },
+    heroMetaText: {
+      color: colors.textSecondary,
+      fontFamily: font.medium,
+      fontSize: 14,
+    },
+    content: {
+      padding: 20,
+      gap: 16,
+    },
+    actions: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    action: {
+      flex: 1,
+      alignItems: "center",
+      gap: 6,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingVertical: 14,
+      backgroundColor: colors.card,
+    },
+    actionLabel: {
+      color: colors.muted,
+      fontFamily: font.semibold,
+      fontSize: 11,
+    },
+    notes: {
+      color: colors.textSecondary,
+      fontFamily: font.regular,
+      fontSize: 14,
+      lineHeight: 22,
+    },
+    tabs: {
+      flexDirection: "row",
+      borderBottomWidth: 1,
+      borderBottomColor: colors.border,
+    },
+    tab: {
+      flex: 1,
+      alignItems: "center",
+      paddingVertical: 14,
+      borderBottomWidth: 2,
+      borderBottomColor: "transparent",
+    },
+    tabActive: { borderBottomColor: colors.primary },
+    tabText: { color: colors.muted, fontFamily: font.medium, fontSize: 12 },
+    tabTextActive: { color: colors.primary, fontFamily: font.semibold },
+    cookButton: {
+      minHeight: 58,
+      borderRadius: radius.lg,
+      backgroundColor: colors.primary,
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      marginTop: 8,
+    },
+    cookButtonText: {
+      color: colors.onPrimary,
+      fontFamily: font.bold,
+      fontSize: 16,
+    },
+  });

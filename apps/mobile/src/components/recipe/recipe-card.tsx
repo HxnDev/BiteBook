@@ -1,7 +1,13 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { Check, CookingPot, Flame } from "lucide-react-native";
+import {
+  Check,
+  CookingPot,
+  Flame,
+  Heart,
+  MoreHorizontal,
+} from "lucide-react-native";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CategoryPill } from "@/components/ui";
 import { sizedImage } from "@/lib/image";
@@ -10,17 +16,21 @@ import type { Recipe } from "@/lib/recipes/types";
 import { font, radius, type Palette } from "@/lib/theme";
 import { useTheme, useThemedStyles } from "@/lib/theme-context";
 
-/** Showcase card: photo with gradient overlay, like the web app's grid. */
+/** Compact editorial card shared by the grid and list layouts. */
 export function RecipeCard({
   recipe,
   selectable,
   selected,
   onToggleSelect,
+  layout = "grid",
+  onToggleFavorite,
 }: {
   recipe: Recipe;
   selectable?: boolean;
   selected?: boolean;
   onToggleSelect?: (id: string) => void;
+  layout?: "grid" | "list";
+  onToggleFavorite?: (recipe: Recipe) => void;
 }) {
   const router = useRouter();
   const { colors } = useTheme();
@@ -36,28 +46,52 @@ export function RecipeCard({
       }
       style={({ pressed }) => [
         styles.card,
+        layout === "list" && styles.cardList,
         pressed && { opacity: 0.9, transform: [{ scale: 0.985 }] },
         selectable && selected && styles.cardSelected,
       ]}
     >
-      {recipe.imageUrl ? (
-        <Image
-          source={{ uri: sizedImage(recipe.imageUrl, 800)! }}
+      <View
+        style={[styles.imageWrap, layout === "list" && styles.imageWrapList]}
+      >
+        {recipe.imageUrl ? (
+          <Image
+            source={{ uri: sizedImage(recipe.imageUrl, 800)! }}
+            style={StyleSheet.absoluteFill}
+            contentFit="cover"
+            transition={200}
+            cachePolicy="memory-disk"
+          />
+        ) : (
+          <View style={[StyleSheet.absoluteFill, styles.placeholder]}>
+            <CookingPot size={38} color={colors.primaryBorder} />
+          </View>
+        )}
+        <LinearGradient
+          colors={["rgba(11,16,14,0.03)", "rgba(11,16,14,0.48)"]}
           style={StyleSheet.absoluteFill}
-          contentFit="cover"
-          transition={200}
-          cachePolicy="memory-disk"
         />
-      ) : (
-        <View style={[StyleSheet.absoluteFill, styles.placeholder]}>
-          <CookingPot size={38} color={colors.primaryBorder} />
-        </View>
-      )}
-      {/* Photo scrim — always dark so overlaid text stays readable. */}
-      <LinearGradient
-        colors={["rgba(17,12,9,0)", "rgba(17,12,9,0.55)", "rgba(17,12,9,0.92)"]}
-        style={StyleSheet.absoluteFill}
-      />
+        <CategoryPill category={recipe.category} small />
+        {!selectable && (
+          <Pressable
+            onPress={(event) => {
+              event.stopPropagation();
+              onToggleFavorite?.(recipe);
+            }}
+            hitSlop={8}
+            style={styles.favoriteButton}
+            accessibilityLabel={
+              recipe.isFavorite ? "Remove from favorites" : "Add to favorites"
+            }
+          >
+            <Heart
+              size={18}
+              color="#FFFFFF"
+              fill={recipe.isFavorite ? "#FFFFFF" : "transparent"}
+            />
+          </Pressable>
+        )}
+      </View>
 
       {selectable && (
         <View style={[styles.selectBadge, selected && styles.selectBadgeOn]}>
@@ -68,7 +102,6 @@ export function RecipeCard({
       )}
 
       <View style={styles.body}>
-        <CategoryPill category={recipe.category} small />
         <Text style={styles.title} numberOfLines={2}>
           {recipe.title}
         </Text>
@@ -76,16 +109,14 @@ export function RecipeCard({
           {macros?.calories != null && (
             <View style={styles.meta}>
               <Flame size={12} color={colors.primaryBright} />
-              <Text style={styles.metaText}>
-                {fmt(macros.calories)} kcal/100g
-              </Text>
+              <Text style={styles.metaText}>{fmt(macros.calories)} kcal</Text>
             </View>
           )}
-          {macros?.protein != null && (
-            <Text style={styles.metaText}>
-              {fmt(macros.protein, 1)}g protein
-            </Text>
-          )}
+          <MoreHorizontal
+            size={17}
+            color={colors.muted}
+            style={styles.moreIcon}
+          />
         </View>
       </View>
     </Pressable>
@@ -95,13 +126,26 @@ export function RecipeCard({
 const createStyles = (colors: Palette) =>
   StyleSheet.create({
     card: {
-      height: 190,
+      minHeight: 246,
       borderRadius: radius.lg,
       overflow: "hidden",
       borderWidth: 1,
       borderColor: colors.border,
       backgroundColor: colors.card,
+    },
+    cardList: {
+      minHeight: 126,
+      flexDirection: "row",
+    },
+    imageWrap: {
+      height: 164,
+      overflow: "hidden",
       justifyContent: "flex-end",
+      padding: 10,
+    },
+    imageWrapList: {
+      width: 145,
+      height: 124,
     },
     cardSelected: {
       borderColor: colors.primary,
@@ -130,15 +174,16 @@ const createStyles = (colors: Palette) =>
       borderColor: colors.primary,
     },
     body: {
-      padding: 14,
-      gap: 6,
+      flex: 1,
+      padding: 12,
+      gap: 8,
+      justifyContent: "center",
     },
-    // Text sits on the photo scrim, so it stays light in both themes.
     title: {
-      color: "#F3EDE2",
+      color: colors.text,
       fontFamily: font.displaySemibold,
-      fontSize: 19,
-      lineHeight: 24,
+      fontSize: 17,
+      lineHeight: 21,
     },
     metaRow: {
       flexDirection: "row",
@@ -151,8 +196,20 @@ const createStyles = (colors: Palette) =>
       gap: 4,
     },
     metaText: {
-      color: "#CDBFAE",
+      color: colors.muted,
       fontFamily: font.medium,
       fontSize: 12,
     },
+    favoriteButton: {
+      position: "absolute",
+      right: 10,
+      top: 10,
+      width: 34,
+      height: 34,
+      borderRadius: radius.full,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: "rgba(11,16,14,0.58)",
+    },
+    moreIcon: { marginLeft: "auto" },
   });

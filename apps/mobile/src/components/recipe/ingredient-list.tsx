@@ -13,7 +13,14 @@ export function IngredientList({ ingredients }: { ingredients: Ingredient[] }) {
       ) : (
         ingredients.map((ing, i) => (
           <View key={ing.id} style={[styles.row, i > 0 && styles.rowBorder]}>
-            <Text style={styles.name}>{ing.name}</Text>
+            <View style={styles.ingredientName}>
+              <View style={styles.ingredientIcon}>
+                <Text style={styles.ingredientEmoji}>
+                  {ingredientEmoji(ing.name)}
+                </Text>
+              </View>
+              <Text style={styles.name}>{ing.name}</Text>
+            </View>
             <Text style={styles.qty}>
               {ing.quantity != null ? `${ing.quantity} ` : ""}
               {ing.unit !== "to taste" || ing.quantity == null ? ing.unit : ""}
@@ -23,6 +30,20 @@ export function IngredientList({ ingredients }: { ingredients: Ingredient[] }) {
       )}
     </Card>
   );
+}
+
+function ingredientEmoji(name: string): string {
+  const value = name.toLowerCase();
+  if (value.includes("onion")) return "🧅";
+  if (value.includes("garlic")) return "🧄";
+  if (value.includes("tomato")) return "🍅";
+  if (value.includes("potato")) return "🥔";
+  if (value.includes("chicken")) return "🍗";
+  if (value.includes("salt")) return "🧂";
+  if (value.includes("chilli") || value.includes("chili")) return "🌶️";
+  if (value.includes("egg")) return "🥚";
+  if (value.includes("rice")) return "🍚";
+  return "✦";
 }
 
 const createStyles = (colors: Palette) =>
@@ -38,8 +59,8 @@ const createStyles = (colors: Palette) =>
       alignItems: "baseline",
       justifyContent: "space-between",
       gap: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 13,
+      paddingHorizontal: 14,
+      paddingVertical: 10,
     },
     rowBorder: {
       borderTopWidth: 1,
@@ -51,6 +72,21 @@ const createStyles = (colors: Palette) =>
       fontSize: 15,
       flex: 1,
     },
+    ingredientName: {
+      flex: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 12,
+    },
+    ingredientIcon: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.faint,
+    },
+    ingredientEmoji: { fontSize: 20 },
     qty: {
       color: colors.muted,
       fontFamily: font.medium,
